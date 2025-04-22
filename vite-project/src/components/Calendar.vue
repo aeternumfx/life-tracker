@@ -11,34 +11,62 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 
+// form input fields
 const newTitle = ref('')
 const newDate = ref('')
+
+// ref to the FullCalendar instance
 const calendarRef = ref(null)
 
-const calendarEvents = ref([
-  { title: 'Example Event', date: '2025-04-24' }
-])
+// local reactive event list (loaded from backend)
+const calendarEvents = ref([])
 
-function addEvent() {
+// 🔁 Fetch events from the backend on mount
+onMounted(async () => {
+  const res = await fetch('/api/events')
+  calendarEvents.value = await res.json()
+
+  // refresh the calendar after loading
+  const calendarApi = calendarRef.value.getApi()
+  calendarApi.refetchEvents()
+})
+
+// ➕ Add a new event and send it to the backend
+async function addEvent() {
   if (!newTitle.value || !newDate.value) return
 
-  calendarEvents.value.push({
-    title: newTitle.value,
-    date: newDate.value
+  const res = await fetch('/api/events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: newTitle.value,
+      date: newDate.value,
+      is_all_day: true
+    })
   })
+
+  const result = await res.json()
+  if (result.success) {
+    calendarEvents.value.push({
+      id: result.id,
+      title: newTitle.value,
+      date: newDate.value,
+      is_all_day: true
+    })
+
+    const calendarApi = calendarRef.value.getApi()
+    calendarApi.refetchEvents()
+  }
 
   newTitle.value = ''
   newDate.value = ''
-
-  const calendarApi = calendarRef.value.getApi()
-  calendarApi.refetchEvents()
 }
 
-// 👇 This object is passed directly to <FullCalendar :options="...">
+// ⬇️ Calendar options, using eventSources (re-fetches data reactively)
 const calendarOptions = {
   plugins: [dayGridPlugin],
   initialView: 'dayGridMonth',
@@ -50,5 +78,4 @@ const calendarOptions = {
     }
   ]
 }
-
 </script>
