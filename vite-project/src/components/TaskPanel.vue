@@ -15,7 +15,10 @@ import { computed } from 'vue'
 import { format } from 'date-fns'
 
 const props = defineProps({
-  events: Array
+  events: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const sortedEvents = computed(() => {
