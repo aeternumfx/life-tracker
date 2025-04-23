@@ -1,12 +1,15 @@
 <template>
-  <div class="h-full">
-    <form @submit.prevent="addEvent" class="space-x-2 mb-4">
-      <input v-model="newTitle" placeholder="Event Title" class="border p-1 rounded" />
-      <input v-model="newDate" type="date" class="border p-1 rounded" />
-      <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Add</button>
-    </form>
+  <div class="w-full h-full flex items-start justify-start p-2">
+    <div class="w-[90%] h-[90%] max-w-full max-h-full">
+      <!-- your form and calendar -->
+      <form @submit.prevent="addEvent" class="space-x-2 mb-4">
+        <input v-model="newTitle" placeholder="Event Title" class="border p-1 rounded" />
+        <input v-model="newDate" type="date" class="border p-1 rounded" />
+        <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Add</button>
+      </form>
 
-    <FullCalendar :options="calendarOptions" ref="calendarRef" />
+      <FullCalendar :options="calendarOptions" ref="calendarRef" />
+    </div>
   </div>
 </template>
 

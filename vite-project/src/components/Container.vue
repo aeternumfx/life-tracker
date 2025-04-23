@@ -1,72 +1,118 @@
 <template>
-    <vue3-draggable-resizable
-      :x="gridX * gridSize"
-      :y="gridY * gridSize"
-      :w="alignedWidth"
-      :h="alignedHeight"
-      :draggable="resizeMode"
-      :resizable="resizeMode"
-      :minw="minSize.w * gridSize"
-      :minh="minSize.h * gridSize"
-      :grid="[gridSize, gridSize]"
-      :dragSnap="resizeMode"
-      :active="resizeMode"
-      @dragstop="onDragStop"
-      @resizestop="onResizeStop"
-      class="component-container"
-      :class="{ 'resize-active': resizeMode }"
-    >
-      <slot />
-    </vue3-draggable-resizable>
-  </template>
+    <div class="grow-layout relative">
+      <!-- Grid Overlay applied behind everything with ripple animation -->
+      <div
+        v-if="resizeMode"
+        class="grid-overlay ripple-enter pointer-events-none z-0"
+      />
+  
+      <grid-layout
+        class="full-grid z-10"
+        :layout="layout"
+        :col-num="cols"
+        :row-height="gridSize"
+        :is-draggable="resizeMode"
+        :is-resizable="resizeMode"
+        :margin="[0, 0]"
+        :use-css-transforms="true"
+        :responsive="false"
+        :max-rows="maxRows"
+        @layout-updated="onLayoutUpdated"
+      >
+        <grid-item
+          v-for="item in layout"
+          :key="item.i"
+          :x="item.x"
+          :y="item.y"
+          :w="item.w"
+          :h="item.h"
+          :i="item.i"
+          :static="item.static || false"
+          :min-w="item.minW || 2"
+          :min-h="item.minH || 2"
+          v-show="!item.hidden"
+          :class="{ 'resize-border': resizeMode }"
+        >
+          <div class="relative w-full h-full">
+            <component
+              v-if="!item.hidden"
+              :is="item.component"
+              v-bind="item.props"
+            />
+          </div>
+        </grid-item>
+      </grid-layout>
+    </div>
+  </template>  
+  
   
   <script setup>
-  import { computed } from 'vue'
-  import Vue3DraggableResizable from 'vue3-draggable-resizable'
-  import 'vue3-draggable-resizable/dist/Vue3DraggableResizable.css'
+  import { ref } from 'vue'
+  import { GridLayout, GridItem } from 'vue3-grid-layout'
   
+  // props
   const props = defineProps({
-    id: String,
-    position: Object,
-    size: Object,
-    minSize: Object,
-    resizeMode: Boolean,
-    gridSize: { type: Number, default: 32 }
-  })
+  layout: Array,
+  gridSize: { type: Number, default: 32 },
+  resizeMode: Boolean,
+  cols: { type: Number, default: 12 },
+  maxRows: Number
+})
+
   
-  const emit = defineEmits(['update:position', 'update:size'])
+  // emits layout update
+  const emit = defineEmits(['update:layout'])
   
-  const gridX = computed(() => props.position.x)
-  const gridY = computed(() => props.position.y)
-  const width = computed(() => props.size.w)
-  const height = computed(() => props.size.h)
-  
-  const alignedWidth = computed(() => width.value * props.gridSize)
-  const alignedHeight = computed(() => height.value * props.gridSize)
-  
-  function onDragStop(left, top) {
-    emit('update:position', {
-      x: Math.round(left / props.gridSize),
-      y: Math.round(top / props.gridSize)
-    })
-  }
-  
-  function onResizeStop(left, top, w, h) {
-    emit('update:position', {
-      x: Math.round(left / props.gridSize),
-      y: Math.round(top / props.gridSize)
-    })
-  
-    emit('update:size', {
-      w: Math.round(w / props.gridSize),
-      h: Math.round(h / props.gridSize)
-    })
+  function onLayoutUpdated(newLayout) {
+    emit('update:layout', newLayout)
   }
   </script>
   
-  <style scoped>
-  .component-container.resize-active {
-    outline: 2px solid #3b82f6;
-    background-color: rgba(59, 130, 246, 0.1);
+  <style>
+@keyframes ripple-in {
+  0% {
+    opacity: 0;
   }
-  </style>  
+  100% {
+    opacity: 1;
+  }
+}
+
+.grid-overlay.ripple-enter {
+  animation: ripple-in 0.6s ease-out forwards;
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(to right, rgba(203, 213, 225, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: 0 0;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+
+.full-grid {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.grow-layout {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  z-index: 0;
+}
+
+.resize-border {
+  outline: 2px dashed #3b82f6;
+  outline-offset: -4px;
+  border-radius: 0.5rem;
+}
+
+  </style>
+  

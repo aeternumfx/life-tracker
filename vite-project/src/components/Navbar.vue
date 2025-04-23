@@ -1,16 +1,16 @@
 <template>
-  <nav class="bg-gray-800 text-white p-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold">Life Tracker</h1>
-    <div class="space-x-4">
-      <a href="#" class="hover:underline">Dashboard</a>
-      <a href="#" class="hover:underline">Calendar</a>
-      <a href="#" class="hover:underline">Tasks</a>
-    </div>
+  <nav class="w-full h-16 bg-gray-800 text-white flex items-center justify-between px-4 shadow z-50">
+    <h1 class="text-lg font-bold">📅 Life Tracker</h1>
+    <button
+      @click="$emit('toggle-resize')"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+    >
+      {{ resizeMode ? 'Exit Resize Mode' : 'Enter Resize Mode' }}
+    </button>
   </nav>
 </template>
 
 <script setup>
+defineProps({ resizeMode: Boolean })
+defineEmits(['toggle-resize'])
 </script>
-
-<style scoped>
-</style>

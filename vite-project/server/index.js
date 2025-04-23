@@ -1,12 +1,42 @@
 import express from 'express'
 import cors from 'cors'
 import { getEvents, addEvent, getLists, addList } from '../db/api.js'
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 const app = express()
 const port = 3001
 
+// Middleware first
 app.use(cors())
 app.use(express.json())
+
+// Path setup
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const layoutFilePath = path.join(__dirname, '../data/layout.json')
+
+// 📤 Load layout
+app.get('/load-layout', async (req, res) => {
+  try {
+    const data = await fs.readFile(layoutFilePath, 'utf-8')
+    res.json(JSON.parse(data))
+  } catch {
+    res.json([]) // Fallback to default layout
+  }
+})
+
+// 💾 Save layout
+app.post('/api/save-layout', async (req, res) => {
+  try {
+    await fs.writeFile(layoutFilePath, JSON.stringify(req.body, null, 2))
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Error saving layout:', err)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
 
 // 📆 Get all events
 app.get('/events', (req, res) => {

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 bg-white shadow rounded w-full max-w-sm h-full overflow-y-auto">
+  <div class="taskpanel p-4 bg-white shadow rounded w-full max-w-sm h-full overflow-y-auto">
     <h2 class="text-lg font-semibold mb-4">Upcoming Events</h2>
     <ul class="space-y-2">
       <li v-for="event in sortedEvents" :key="event.id" class="border-b pb-1">
@@ -29,3 +29,12 @@ function formatDate(dateStr) {
   return format(new Date(dateStr), 'EEE, MMM d')
 }
 </script>
+
+<style scoped>
+  .taskpanel{
+    border-style: solid;
+    border-width: 5px;
+    border-radius: 2%;
+    border-color: #2062A3;
+  }
+</style>

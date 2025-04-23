@@ -1,77 +1,194 @@
 <template>
-  <div class="flex h-screen overflow-hidden relative">
+  <div class="flex flex-col h-screen overflow-hidden">
+    <!-- Top Navbar -->
+    <Navbar :resizeMode="resizeMode" @toggle-resize="resizeMode = !resizeMode" />
+
     <!-- Grid Layout Area -->
-    <div class="absolute inset-0 pointer-events-none z-0">
-      <div class="relative w-full h-full pointer-events-auto grid-background">
-        <Container
-          v-for="item in layout"
-          :key="item.id"
-          :id="item.id"
-          :position="{ x: item.x, y: item.y }"
-          :size="{ w: item.w, h: item.h }"
-          :minSize="{ w: 2, h: 2 }"
-          :resizeMode="resizeMode"
-          :gridSize="gridSize"
-          @update:position="(pos) => updatePosition(item.id, pos)"
-          @update:size="(size) => updateSize(item.id, size)"
-        >
-          <component
-            :is="item.component"
-            :ref="item.id === 'calendar' ? 'calendarComponent' : null"
-            :events="calendarEvents"
-            :event-source-key="eventSourceKey"
-            @event-added="loadEvents"
+    <div class="flex-1 relative overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <div class="relative w-full h-full min-h-screen pointer-events-auto grid-background">
+          <Container
+            :layout="layout"
+            :gridSize="32"
+            :resizeMode="resizeMode"
+            :cols="12"
+            :maxRows="maxRows.value"
+            @update:layout="(newLayout) => layout = newLayout"
           />
-        </Container>
+        </div>
       </div>
     </div>
-
-    <button @click="resizeMode = !resizeMode" class="fixed top-4 left-4 z-50 bg-blue-600 text-white px-2 py-1 rounded">
-      {{ resizeMode ? 'Exit Resize Mode' : 'Enter Resize Mode' }}
-    </button>
   </div>
 </template>
 
-
 <script setup>
+import Navbar from '../components/Navbar.vue'
 import Container from '../components/Container.vue'
-import { ref, onMounted, markRaw } from 'vue'
 import Calendar from '../components/Calendar.vue'
 import TaskPanel from '../components/TaskPanel.vue'
+import { ref, onMounted, markRaw } from 'vue'
+import { watch } from 'vue'
 
 const calendarEvents = ref([])
 const calendarComponent = ref(null)
-const eventSourceKey = ref(0) // ✅ you need this
-const gridSize = ref(32) // each grid block = 32px (can be user adjustable)
-const resizeMode = ref(false) // toggle this to enable drag/resize mode
+const eventSourceKey = ref(0)
+const gridSize = ref(32)
+const resizeMode = ref(false)
+const maxRows = ref(Math.floor(window.innerHeight / gridSize.value))
+
+watch(resizeMode, async (newVal, oldVal) => {
+  if (oldVal === true && newVal === false) {
+    const confirmSave = window.confirm('Do you want to save layout changes?')
+    if (confirmSave) {
+      await saveLayoutToFile()
+    }
+  }
+})
+
+async function saveLayoutToFile() {
+  try {
+    const res = await fetch('/api/save-layout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(layout.value)
+    })
+    const data = await res.json()
+    if (data.success) {
+      console.log('Layout saved.')
+    } else {
+      console.error('Failed to save layout (server returned error)')
+    }
+  } catch (err) {
+    console.error('Failed to save layout:', err)
+  }
+}
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/load-layout')
+    const data = await res.json()
+
+    if (Array.isArray(data) && data.length > 0) {
+      layout.value = data.map(item => ({
+        ...item,
+        component: resolveComponent(item.i),
+        props: getComponentProps(item.i)
+      }))
+    } else {
+      console.log('No saved layout found, using default.')
+      layout.value = getDefaultLayout()
+    }
+  } catch {
+    console.log('Error loading layout, using default.')
+    layout.value = getDefaultLayout()
+  }
+
+  loadEvents()
+})
+
+function getDefaultLayout() {
+  return [
+    {
+      i: 'calendar',
+      x: 0,
+      y: 0,
+      w: 9,
+      h: 22,
+      minW: 9,
+      minH: 22,
+      component: markRaw(Calendar),
+      props: {
+        events: calendarEvents,
+        eventSourceKey,
+        onEventAdded: loadEvents
+      }
+    },
+    {
+      i: 'tasks',
+      x: 6,
+      y: 0,
+      w: 3,
+      h: 5,
+      component: markRaw(TaskPanel),
+      props: {
+        events: calendarEvents
+      }
+    }
+  ]
+}
+
+function resolveComponent(id) {
+  switch (id) {
+    case 'calendar': return markRaw(Calendar)
+    case 'tasks': return markRaw(TaskPanel)
+    default: return null
+  }
+}
+
+function getComponentProps(id) {
+  switch (id) {
+    case 'calendar':
+      return {
+        events: calendarEvents,
+        eventSourceKey,
+        onEventAdded: loadEvents
+      }
+    case 'tasks':
+      return {
+        events: calendarEvents
+      }
+    default:
+      return {}
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', () => {
+    maxRows.value = Math.floor(window.innerHeight / gridSize.value)
+  })
+})
 
 const layout = ref([
   {
-    id: 'calendar',
+    i: 'calendar',
     x: 0,
     y: 0,
-    w: 6,
-    h: 5,
+    w: 9,
+    h: 22,
+    minW: 9,
+    minH: 22,
     component: markRaw(Calendar),
+    props: {
+      events: calendarEvents,
+      eventSourceKey,
+      onEventAdded: loadEvents
+    }
   },
   {
-    id: 'tasks',
+    i: 'tasks',
     x: 6,
     y: 0,
     w: 3,
     h: 5,
     component: markRaw(TaskPanel),
+    props: {
+      events: calendarEvents
+    }
   }
 ])
 
 async function loadEvents() {
   const res = await fetch('/api/events')
   calendarEvents.value = await res.json()
-  eventSourceKey.value++ // ✅ this works now!
+  eventSourceKey.value++
 
-  // Optional, may not even be needed anymore:
   if (calendarComponent.value?.calendarRef) {
-    calendarComponent.value.calendarRef.getApi().refetchEvents()
+    const calendarApi = calendarComponent.value.calendarRef.getApi()
+    calendarApi.removeAllEventSources()
+    calendarApi.addEventSource({
+      id: `source-${eventSourceKey.value}`,
+      events: calendarEvents.value
+    })
   }
 }
 
@@ -98,8 +215,10 @@ function updateSize(id, size) {
 
 <style scoped>
 .grid-background {
-  background-image: 
-    repeating-linear-gradient(0deg, #e5e7eb 0px, #e5e7eb 1px, transparent 1px, transparent 32px),
-    repeating-linear-gradient(90deg, #e5e7eb 0px, #e5e7eb 1px, transparent 1px, transparent 32px);
+  min-height: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: visible;
+  position: relative;
 }
 </style>
