@@ -7,9 +7,11 @@ export default Object.entries(modules).map(([path, mod]) => {
 
   return {
     id: def.id || id,
-    component: markRaw(def.component), // ✅ moved here
+    component: markRaw(def.component),
     defaultLayout: def.defaultLayout || { w: 4, h: 4, minW: 2, minH: 2 },
     getProps: def.getProps,
+    defW: def.defW || 3, // NEW: Default width when dropped
+    defH: def.defH || 5, // NEW: Default height when dropped
     title: def.title || id,
     help: def.help || ''
   }

@@ -119,8 +119,8 @@ function handleDrop(event) {
   const gridX = Math.floor(offsetX / gridSize.value)
   const gridY = Math.floor(offsetY / gridSize.value)
 
-  const sourceModule = availableModules.value.find(m => m.id === modData.id)
-  if (!sourceModule) {
+  const moduleData = resolveModuleData(modData.id)
+  if (!moduleData) {
     console.warn(`No module found for ID "${modData.id}"`)
     return
   }
@@ -129,12 +129,12 @@ function handleDrop(event) {
     i: `${modData.id}-${Date.now()}`,
     x: gridX,
     y: gridY,
-    w: modData.w || 3,
-    h: modData.h || 5,
-    minW: modData.minW || 3,
-    minH: modData.minH || 5,
-    component: sourceModule.component, // ✅ pulled from real module ref
-    props: modData.props || {}
+    w: moduleData.defW,
+    h: moduleData.defH,
+    minW: moduleData.minW,
+    minH: moduleData.minH,
+    component: moduleData.component,
+    props: moduleData.props
   })
 }
 
@@ -148,9 +148,9 @@ function loadEvents() {
 }
 
 async function saveLayoutToFile() {
-  const layoutToSave = layout.value.map(({ i, x, y, w, h, minW, minH }) => ({
-    i, x, y, w, h, minW, minH
-  }))
+  const layoutToSave = layout.value.map(({ i, x, y, w, h }) => ({
+  i, x, y, w, h
+}))
 
   try {
     const res = await fetch('/api/save-layout', {
@@ -166,21 +166,11 @@ async function saveLayoutToFile() {
   }
 }
 
-function resolveComponent(id) {
-  const match = availableModules.value.find(m => id.startsWith(m.id))
-  return match?.component || null
-}
-
-function getComponentProps(id) {
-  const match = availableModules.value.find(m => id.startsWith(m.id))
-  return match?.props || {}
-}
-
 // Dynamically import all modules and wrap their data
 const availableModules = ref(
   modules.map(mod => ({
     id: mod.id,
-    component: mod.component, // ensure it's raw, no proxy wrapping
+    component: markRaw(mod.component),  // 👈 critical
     props: mod.getProps
       ? mod.getProps({
           events: calendarEvents,
@@ -188,7 +178,11 @@ const availableModules = ref(
           onEventAdded: loadEvents
         })
       : {},
-    ...mod.defaultLayout
+    ...mod.defaultLayout,
+    defW: mod.defW || 3,
+    defH: mod.defH || 5,
+    minW: mod.minW || 2,
+    minH: mod.minH || 2
   }))
 )
 
@@ -205,11 +199,16 @@ onMounted(() => {
       const data = await res.json()
       if (!Array.isArray(data) || data.length === 0) return false
 
-      layout.value = data.map(item => ({
-        ...item,
-        component: resolveComponent(item.i),
-        props: getComponentProps(item.i)
-      }))
+      layout.value = data.map(item => {
+  const moduleData = resolveModuleData(item.i)
+  return {
+    ...item,
+    component: moduleData?.component || null,
+    props: moduleData?.props || {},
+    minW: moduleData?.minW || 2,
+    minH: moduleData?.minH || 2
+  }
+})
 
       return true
     } catch (err) {
@@ -229,6 +228,20 @@ onMounted(() => {
     loadEvents()
   })()
 })
+
+function resolveModuleData(id) {
+  const match = availableModules.value.find(m => id.startsWith(m.id))
+  if (!match) return null
+
+  return {
+    component: match.component,
+    props: match.props || {},
+    minW: match.minW || 2,
+    minH: match.minH || 2,
+    defW: match.defW || 3,
+    defH: match.defH || 5
+  }
+}
 
 watch(resizeMode, async (newVal, oldVal) => {
   if (oldVal && !newVal) {

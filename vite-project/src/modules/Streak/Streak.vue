@@ -1,5 +1,6 @@
 <template>
   <div class="h-full w-full p-2 flex flex-col justify-between items-center relative streak">
+    <div>
     <!-- Fire Emoji -->
     <div class="text-[5rem]">🔥</div>
 
@@ -7,6 +8,7 @@
     <div class="text-4xl font-bold text-orange-600">
       {{ streakCount }}
     </div>
+  </div>
   </div>
 </template>
 

@@ -3,7 +3,7 @@ import Calendar from './Calendar.vue'
 
 export default {
   id: 'calendar',
-  component: markRaw(Calendar),
+  component: Calendar,
   defaultLayout: {
     i: 'calendar',
     x: 0,
@@ -11,7 +11,7 @@ export default {
     w: 9,
     h: 22,
     minW: 9,
-    minH: 22
+    minH: 10
   },
   getProps: ({ events = [], eventSourceKey = 0, onEventAdded = () => {} } = {}) => ({
     events,
