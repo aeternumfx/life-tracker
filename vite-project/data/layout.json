@@ -1,0 +1,377 @@
+[
+  {
+    "i": "calendar",
+    "x": 0,
+    "y": 0,
+    "w": 9,
+    "h": 22,
+    "minW": 9,
+    "minH": 22,
+    "component": {
+      "__name": "Calendar",
+      "props": {},
+      "emits": [
+        "event-added"
+      ],
+      "__hmrId": "d3cca5a8",
+      "__file": "/home/aeternum/Documents/life-tracker/vite-project/src/components/Calendar.vue"
+    },
+    "props": {
+      "events": [
+        {
+          "id": 15,
+          "title": "TEEEEEEST",
+          "description": null,
+          "date": "2025-04-03",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 10:33:19",
+          "updated_at": null
+        },
+        {
+          "id": 9,
+          "title": "aegfsgsgsger",
+          "description": null,
+          "date": "2025-04-08",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:46:01",
+          "updated_at": null
+        },
+        {
+          "id": 10,
+          "title": "testestest",
+          "description": null,
+          "date": "2025-04-09",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:52:21",
+          "updated_at": null
+        },
+        {
+          "id": 7,
+          "title": "test123",
+          "description": null,
+          "date": "2025-04-10",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:42:54",
+          "updated_at": null
+        },
+        {
+          "id": 13,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-16",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 10:01:42",
+          "updated_at": null
+        },
+        {
+          "id": 8,
+          "title": "iuhfgsiusefuihsf",
+          "description": null,
+          "date": "2025-04-19",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:45:48",
+          "updated_at": null
+        },
+        {
+          "id": 3,
+          "title": "test test test",
+          "description": null,
+          "date": "2025-04-22",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:56:39",
+          "updated_at": null
+        },
+        {
+          "id": 14,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-23",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 10:03:36",
+          "updated_at": null
+        },
+        {
+          "id": 2,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:56:33",
+          "updated_at": null
+        },
+        {
+          "id": 5,
+          "title": "TEST",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:26:56",
+          "updated_at": null
+        },
+        {
+          "id": 11,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 07:37:56",
+          "updated_at": null
+        },
+        {
+          "id": 12,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 09:47:18",
+          "updated_at": null
+        },
+        {
+          "id": 1,
+          "title": "Doctor Appointment",
+          "description": null,
+          "date": "2025-04-25",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:46:00",
+          "updated_at": null
+        },
+        {
+          "id": 4,
+          "title": "eeeeee",
+          "description": null,
+          "date": "2025-04-26",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:58:42",
+          "updated_at": null
+        },
+        {
+          "id": 6,
+          "title": "yeaaaaaa",
+          "description": null,
+          "date": "2025-04-30",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:42:28",
+          "updated_at": null
+        }
+      ],
+      "eventSourceKey": 2
+    },
+    "moved": false
+  },
+  {
+    "i": "tasks",
+    "x": 9,
+    "y": 0,
+    "w": 3,
+    "h": 22,
+    "component": {
+      "__name": "TaskPanel",
+      "props": {
+        "events": {}
+      },
+      "__hmrId": "f91f0db3",
+      "__scopeId": "data-v-f91f0db3",
+      "__file": "/home/aeternum/Documents/life-tracker/vite-project/src/components/TaskPanel.vue"
+    },
+    "props": {
+      "events": [
+        {
+          "id": 15,
+          "title": "TEEEEEEST",
+          "description": null,
+          "date": "2025-04-03",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 10:33:19",
+          "updated_at": null
+        },
+        {
+          "id": 9,
+          "title": "aegfsgsgsger",
+          "description": null,
+          "date": "2025-04-08",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:46:01",
+          "updated_at": null
+        },
+        {
+          "id": 10,
+          "title": "testestest",
+          "description": null,
+          "date": "2025-04-09",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:52:21",
+          "updated_at": null
+        },
+        {
+          "id": 7,
+          "title": "test123",
+          "description": null,
+          "date": "2025-04-10",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:42:54",
+          "updated_at": null
+        },
+        {
+          "id": 13,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-16",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 10:01:42",
+          "updated_at": null
+        },
+        {
+          "id": 8,
+          "title": "iuhfgsiusefuihsf",
+          "description": null,
+          "date": "2025-04-19",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:45:48",
+          "updated_at": null
+        },
+        {
+          "id": 3,
+          "title": "test test test",
+          "description": null,
+          "date": "2025-04-22",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:56:39",
+          "updated_at": null
+        },
+        {
+          "id": 14,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-23",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 10:03:36",
+          "updated_at": null
+        },
+        {
+          "id": 2,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:56:33",
+          "updated_at": null
+        },
+        {
+          "id": 5,
+          "title": "TEST",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:26:56",
+          "updated_at": null
+        },
+        {
+          "id": 11,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 07:37:56",
+          "updated_at": null
+        },
+        {
+          "id": 12,
+          "title": "test",
+          "description": null,
+          "date": "2025-04-24",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-23 09:47:18",
+          "updated_at": null
+        },
+        {
+          "id": 1,
+          "title": "Doctor Appointment",
+          "description": null,
+          "date": "2025-04-25",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:46:00",
+          "updated_at": null
+        },
+        {
+          "id": 4,
+          "title": "eeeeee",
+          "description": null,
+          "date": "2025-04-26",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 12:58:42",
+          "updated_at": null
+        },
+        {
+          "id": 6,
+          "title": "yeaaaaaa",
+          "description": null,
+          "date": "2025-04-30",
+          "time": null,
+          "is_all_day": 1,
+          "list_id": null,
+          "created_at": "2025-04-22 13:42:28",
+          "updated_at": null
+        }
+      ]
+    },
+    "moved": false
+  }
+]

@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename)
 const layoutFilePath = path.join(__dirname, '../data/layout.json')
 
 // 📤 Load layout
-app.get('/load-layout', async (req, res) => {
+app.get('/api/load-layout', async (req, res) => {
   try {
     const data = await fs.readFile(layoutFilePath, 'utf-8')
     res.json(JSON.parse(data))
@@ -30,6 +30,7 @@ app.get('/load-layout', async (req, res) => {
 // 💾 Save layout
 app.post('/api/save-layout', async (req, res) => {
   try {
+    const layoutFilePath = path.join(__dirname, '../data/layout.json')
     await fs.writeFile(layoutFilePath, JSON.stringify(req.body, null, 2))
     res.json({ success: true })
   } catch (err) {
@@ -39,26 +40,26 @@ app.post('/api/save-layout', async (req, res) => {
 })
 
 // 📆 Get all events
-app.get('/events', (req, res) => {
+app.get('/api/events', (req, res) => {
   const events = getEvents()
   res.json(events)
 })
 
 // ➕ Add an event
-app.post('/events', (req, res) => {
+app.post('/api/events', (req, res) => {
   const { title, date, is_all_day } = req.body
   const result = addEvent({ title, date, is_all_day })
   res.json({ success: true, id: result.lastInsertRowid })
 })
 
 // 📋 Get all lists
-app.get('/lists', (req, res) => {
+app.get('/api/lists', (req, res) => {
   const lists = getLists()
   res.json(lists)
 })
 
 // ➕ Add a list
-app.post('/lists', (req, res) => {
+app.post('/api/lists', (req, res) => {
   const { name, type } = req.body
   const result = addList({ name, type })
   res.json({ success: true, id: result.lastInsertRowid })
