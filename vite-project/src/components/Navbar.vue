@@ -9,7 +9,7 @@
         class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow z-50"
       >
         <button
-          @click="$emit('toggle-edit-mode')"
+          @click="handleEditMode"
           class="block w-full px-4 py-2 hover:bg-gray-100 text-left"
         >
           Edit Mode
@@ -22,6 +22,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
+const emit = defineEmits(['toggle-edit-mode', 'show-theme-manager'])
+
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
@@ -33,6 +35,17 @@ function handleClickOutside(event) {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
     dropdownOpen.value = false
   }
+}
+
+// 🟢 Dropdown item actions that close the menu
+function handleEditMode() {
+  emit('toggle-edit-mode')
+  dropdownOpen.value = false
+}
+
+function handleThemeManager() {
+  emit('show-theme-manager')
+  dropdownOpen.value = false
 }
 
 onMounted(() => {

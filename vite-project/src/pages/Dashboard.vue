@@ -5,9 +5,15 @@
     <EditBar
   v-if="isEditMode"
   @show-module-browser="showModuleBrowser = true"
-  @save-layout="saveLayoutToFile"
+  @show-theme-manager="showThemeManager = true"
+  @save-layout="() => exitEditMode(true)"
   @exit-edit="exitEditMode"
 />
+<ThemeManager
+  v-if="showThemeManager"
+  @close="showThemeManager = false"
+/>
+
 
     <!-- Main Area with optional module browser -->
     <div class="flex flex-1 relative overflow-hidden">
@@ -49,6 +55,8 @@ import Container from '../components/Container.vue'
 import ModuleBrowser from '../components/ModuleBrowser.vue'
 import modules from '../modules/_allModules'
 import calendarModule from '../modules/Calendar'
+import ThemeManager from '../components/ThemeManager.vue'
+
 
 // State refs
 const layout = ref([])
@@ -60,6 +68,7 @@ const gridSize = ref(32)
 const maxRows = ref(Math.floor(window.innerHeight / gridSize.value))
 const suppressResizePrompt = ref(false)
 const isEditMode = ref(false)
+const showThemeManager = ref(false)
 
 function enableEditMode() {
   isEditMode.value = true
@@ -70,9 +79,25 @@ function handleDeleteModule(id) {
   layout.value = layout.value.filter((item) => item.i !== id)
 }
 
-function exitEditMode(save = false) {
+async function exitEditMode(save = false) {
   if (save) {
-    saveLayoutToFile()
+    await saveLayoutToFile()
+  } else {
+    const confirmReset = window.confirm("Discard changes?")
+    if (confirmReset) {
+      const res = await fetch('/api/load-layout')
+      const data = await res.json()
+      layout.value = data.map(item => {
+        const moduleData = resolveModuleData(item.i)
+        return {
+          ...item,
+          component: moduleData?.component || null,
+          props: moduleData?.props || {},
+          minW: moduleData?.minW || 2,
+          minH: moduleData?.minH || 2
+        }
+      })
+    }
   }
 
   suppressResizePrompt.value = true
@@ -148,8 +173,8 @@ function loadEvents() {
 }
 
 async function saveLayoutToFile() {
-  const layoutToSave = layout.value.map(({ i, x, y, w, h }) => ({
-  i, x, y, w, h
+  const layoutToSave = layout.value.map(({ i, x, y, w, h, minW, minH }) => ({
+  i, x, y, w, h, minW, minH
 }))
 
   try {
@@ -186,6 +211,27 @@ const availableModules = ref(
   }))
 )
 
+async function loadLayoutFromFile() {
+  try {
+    const res = await fetch('/api/load-layout')
+    const data = await res.json()
+    if (!Array.isArray(data)) throw new Error('Layout is invalid or empty')
+
+    layout.value = data.map(item => {
+      const moduleData = resolveModuleData(item.i)
+      return {
+        ...item,
+        component: moduleData?.component || null,
+        props: moduleData?.props || {},
+        minW: moduleData?.minW || 2,
+        minH: moduleData?.minH || 2
+      }
+    })
+  } catch (err) {
+    console.warn('Failed to reload layout from file:', err)
+  }
+}
+
 onMounted(() => {
   // Handle maxRows on window resize
   window.addEventListener('resize', () => {
@@ -219,11 +265,11 @@ onMounted(() => {
 
   // Load layout, fallback to default if missing
   ;(async () => {
-    const loaded = await tryLoadLayout('/api/load-layout')
-    if (!loaded) {
-      console.log('Falling back to default layout.')
-      await tryLoadLayout('/api/default-layout')
-    }
+    const loaded = await loadLayoutFromFile()
+if (!loaded) {
+  console.log('Falling back to default layout.')
+  await tryLoadLayout('/api/default-layout')
+}
 
     loadEvents()
   })()
@@ -251,7 +297,11 @@ watch(resizeMode, async (newVal, oldVal) => {
     }
 
     const confirmSave = window.confirm('Do you want to save layout changes?')
-    if (confirmSave) await saveLayoutToFile()
+    if (confirmSave) {
+      await saveLayoutToFile()
+    } else {
+      await loadLayoutFromFile() // 👈 restore previous layout
+    }
   }
 })
 </script>

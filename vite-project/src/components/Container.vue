@@ -20,7 +20,7 @@
         :min-w="item.minW"
         :min-h="item.minH"
       >
-        <div class="relative h-full w-full border rounded overflow-hidden">
+        <div class="relative h-full w-full rounded overflow-hidden">
           <!-- Delete + Settings buttons -->
           <div
             v-if="resizeMode"
@@ -49,13 +49,10 @@
   </GridLayout>
 </template>
 
-  
-  
-  <script setup>
-  import { GridLayout, GridItem } from 'vue3-grid-layout'
-  
-  // props
-  const props = defineProps({
+<script setup>
+import { GridLayout, GridItem } from 'vue3-grid-layout'
+
+const props = defineProps({
   layout: Array,
   gridSize: { type: Number, default: 32 },
   resizeMode: Boolean,
@@ -63,61 +60,18 @@
   maxRows: Number
 })
 
-  
-  // emits layout update
-  const emit = defineEmits(['update:layout', 'delete-module'])
-  
-  function onLayoutUpdated(newLayout) {
-    emit('update:layout', newLayout)
-  }
+const emit = defineEmits(['update:layout', 'delete-module'])
 
-  </script>
-  
-  <style>
-@keyframes ripple-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+function onLayoutUpdated(newLayout) {
+  emit('update:layout', newLayout)
 }
+</script>
 
-.grid-overlay.ripple-enter {
-  animation: ripple-in 0.6s ease-out forwards;
-}
-
-.grid-overlay {
-  background-image:
-    linear-gradient(to right, rgba(203, 213, 225, 0.4) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.4) 1px, transparent 1px);
-  background-size: 32px 32px;
-  background-position: 0 0;
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-
-.full-grid {
-  position: relative;
-  height: 100%;
-  width: 100%;
-}
-
-.grow-layout {
-  height: 100%;
-  width: 100%;
-  position: relative;
-  z-index: 0;
-}
+<style>
 
 .resize-border {
   outline: 2px dashed #3b82f6;
   outline-offset: -4px;
   border-radius: 0.5rem;
 }
-
-  </style>
-  
+</style>

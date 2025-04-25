@@ -1,20 +1,32 @@
 <template>
-    <div class="w-full h-full flex items-start justify-start p-2">
-      <div class="w-[90%] h-[90%] max-w-full max-h-full">
-        <!-- your form and calendar -->
+    <div class="w-full h-full flex items-start justify-start p-2"
+         style="background-color: var(--color-surface); color: var(--color-textPrimary);">
+      <div class="w-full h-full max-w-full max-h-full overflow-hidden">
+        <!-- Form -->
         <form @submit.prevent="addEvent" class="space-x-2 mb-4">
-          <input v-model="newTitle" placeholder="Event Title" class="border p-1 rounded" />
-          <input v-model="newDate" type="date" class="border p-1 rounded" />
-          <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Add</button>
+          <input v-model="newTitle" placeholder="Event Title"
+            class="border p-1 rounded"
+            style="border-color: var(--color-secondary); background-color: var(--color-surface); color: var(--color-textPrimary);" />
+  
+          <input v-model="newDate" type="date"
+            class="border p-1 rounded"
+            style="border-color: var(--color-secondary); background-color: var(--color-surface); color: var(--color-textPrimary);" />
+  
+          <button type="submit"
+            class="px-3 py-1 rounded"
+            style="background-color: var(--color-primary); color: var(--color-textPrimary);">
+            Add
+          </button>
         </form>
   
+        <!-- Calendar -->
         <FullCalendar :options="calendarOptions" ref="calendarRef" />
       </div>
     </div>
-  </template>
+  </template>  
   
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
   import FullCalendar from '@fullcalendar/vue3'
   import dayGridPlugin from '@fullcalendar/daygrid'
   
@@ -29,6 +41,23 @@
   const newDate = ref('')
   const calendarRef = ref(null)
   defineExpose({ calendarRef })
+
+  let resizeObserver
+
+onMounted(() => {
+  const el = calendarRef.value?.$el
+  if (!el) return
+
+  resizeObserver = new ResizeObserver(() => {
+    calendarRef.value.getApi().updateSize()
+  })
+  resizeObserver.observe(el)
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+})
+
   
   const calendarOptions = computed(() => ({
     plugins: [dayGridPlugin],
@@ -88,3 +117,19 @@
   }
   
   </script>
+
+  <style scoped>
+.fc {
+  width: 100% !important;
+  height: 100% !important;
+  font-size: 0.8rem; /* scale down font size for smaller layouts */
+}
+
+.fc .fc-scrollgrid {
+  height: 100% !important;
+}
+
+.fc-view-harness {
+  height: 100% !important;
+}
+</style>

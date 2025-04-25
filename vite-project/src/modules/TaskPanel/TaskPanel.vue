@@ -1,10 +1,20 @@
 <template>
-  <div class="taskpanel p-4 bg-white shadow rounded w-full max-w-sm h-full overflow-y-auto">
+  <div
+    class="taskpanel p-4 shadow rounded w-full max-w-sm h-full overflow-y-auto"
+    style="background-color: var(--color-surface); color: var(--color-textPrimary); border-color: var(--color-primary);"
+  >
     <h2 class="text-lg font-semibold mb-4">Upcoming Events</h2>
     <ul class="space-y-2">
-      <li v-for="event in sortedEvents" :key="event.id" class="border-b pb-1">
+      <li
+        v-for="event in sortedEvents"
+        :key="event.id"
+        class="border-b pb-1"
+        style="border-color: var(--color-secondary);"
+      >
         <strong>{{ event.title }}</strong>
-        <div class="text-sm text-gray-600">{{ formatDate(event.date) }}</div>
+        <div class="text-sm" style="color: var(--color-textSecondary);">
+          {{ formatDate(event.date) }}
+        </div>
       </li>
     </ul>
   </div>
@@ -40,10 +50,9 @@ function isSameDay(a, b) {
 </script>
 
 <style scoped>
-  .taskpanel{
-    border-style: solid;
-    border-width: 5px;
-    border-radius: 2%;
-    border-color: #2062A3;
-  }
+.taskpanel {
+  border-width: 5px;
+  border-style: solid;
+  border-radius: 2%;
+}
 </style>

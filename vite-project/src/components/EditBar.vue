@@ -1,16 +1,26 @@
-<!-- EditBar.vue -->
 <template>
-    <div class="bg-gray-200 px-4 py-2 flex items-center justify-between border-b border-gray-300">
-      <div class="space-x-4">
-        <button class="bg-gray-500 text-white px-3 py-1 rounded" @click="$emit('exit-edit', false)">Don't Save</button>
-        <button class="bg-blue-600 text-white px-3 py-1 rounded" @click="$emit('exit-edit', true)">Save</button>
-        <button class="bg-yellow-500 text-white px-3 py-1 rounded" @click="$emit('show-module-browser')">Add Modules</button>
+    <div class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
+      <div class="space-x-2">
+        <button @click="$emit('show-module-browser')" class="btn">Add Modules</button>
+        <button @click="$emit('show-theme-manager')" class="btn">Theme Manager</button>
       </div>
-      <span>Edit tools (placeholder)</span>
+  
+      <div class="space-x-2">
+        <button @click="$emit('save-layout')" class="btn">Save Layout</button>
+        <button @click="$emit('exit-edit')" class="btn bg-red-500 text-white">Don't Save</button>
+      </div>
     </div>
   </template>
   
-  
   <script setup>
-  defineEmits(['show-module-browser', 'save-layout', 'exit-edit'])
-  </script>  
+  const emit = defineEmits(['show-module-browser', 'save-layout', 'exit-edit', 'show-theme-manager'])
+  </script>
+
+  <style scoped>
+  .btn {
+    @apply px-3 py-1 rounded border text-sm hover:bg-gray-200 dark:hover:bg-gray-700;
+  }
+  </style>
+  
+  
+  

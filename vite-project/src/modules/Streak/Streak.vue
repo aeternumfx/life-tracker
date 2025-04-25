@@ -1,14 +1,17 @@
 <template>
-  <div class="h-full w-full p-2 flex flex-col justify-between items-center relative streak">
+  <div
+    class="h-full w-full p-2 flex flex-col justify-between items-center relative streak"
+    style="background-color: var(--color-surface); color: var(--color-textPrimary); border-color: var(--color-primary);"
+  >
     <div>
-    <!-- Fire Emoji -->
-    <div class="text-[5rem]">🔥</div>
+      <!-- Fire Emoji -->
+      <div class="text-[5rem]">🔥</div>
 
-    <!-- Day Counter -->
-    <div class="text-4xl font-bold text-orange-600">
-      {{ streakCount }}
+      <!-- Day Counter -->
+      <div class="text-4xl font-bold" style="color: var(--color-primary);">
+        {{ streakCount }}
+      </div>
     </div>
-  </div>
   </div>
 </template>
 
@@ -19,7 +22,6 @@ const streakCount = 69 // hardcoded for now
 <style scoped>
 .streak {
   border-width: 5px;
-  border-color: orange;
   border-radius: 5%;
 }
 </style>
