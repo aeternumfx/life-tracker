@@ -4,6 +4,7 @@ import { getEvents, addEvent, getLists, addList } from '../db/api.js'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { deleteEvent } from '../db/api.js'
 
 const app = express()
 const port = 3001
@@ -50,6 +51,28 @@ app.post('/api/events', (req, res) => {
   const { title, date, is_all_day } = req.body
   const result = addEvent({ title, date, is_all_day })
   res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.delete('/api/events/:id', (req, res) => {
+  const { id } = req.params
+  try {
+    const result = deleteEvent(id)
+    res.json({ success: result.changes > 0 })
+  } catch (err) {
+    console.error('Error deleting event:', err)
+    res.status(500).json({ success: false })
+  }
+})
+
+const defaultLayoutPath = path.join(__dirname, '../data/defaultlayout.json')
+
+app.get('/api/default-layout', async (req, res) => {
+  try {
+    const data = await fs.readFile(defaultLayoutPath, 'utf-8')
+    res.json(JSON.parse(data))
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load default layout' })
+  }
 })
 
 // 📋 Get all lists

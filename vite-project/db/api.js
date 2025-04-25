@@ -18,3 +18,7 @@ export function getLists() {
 export function addList({ name, type }) {
   return db.prepare('INSERT INTO lists (name, type) VALUES (?, ?)').run(name, type)
 }
+
+export function deleteEvent(id) {
+  return db.prepare('DELETE FROM events WHERE id = ?').run(id)
+}

@@ -12,7 +12,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { format } from 'date-fns'
+import { format, isAfter, startOfToday } from 'date-fns'
 
 const props = defineProps({
   events: {
@@ -22,11 +22,20 @@ const props = defineProps({
 })
 
 const sortedEvents = computed(() => {
-  return [...props.events].sort((a, b) => new Date(a.date) - new Date(b.date))
+  const today = startOfToday()
+  return [...props.events]
+    .filter(event => isAfter(new Date(event.date), today) || isSameDay(new Date(event.date), today))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
 })
 
 function formatDate(dateStr) {
   return format(new Date(dateStr), 'EEE, MMM d')
+}
+
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth() === b.getMonth() &&
+         a.getDate() === b.getDate()
 }
 </script>
 

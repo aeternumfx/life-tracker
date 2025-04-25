@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-screen overflow-hidden">
     <!-- Top Navbar -->
-    <Navbar :resizeMode="resizeMode" @toggle-resize="resizeMode = !resizeMode" />
+    <Navbar :resizeMode="resizeMode" @toggle-resize="resizeMode = !resizeMode" @add-module="addModule" />
 
     <!-- Grid Layout Area -->
     <div class="flex-1 relative overflow-hidden">
@@ -24,10 +24,13 @@
 <script setup>
 import Navbar from '../components/Navbar.vue'
 import Container from '../components/Container.vue'
-import Calendar from '../components/Calendar.vue'
-import TaskPanel from '../components/TaskPanel.vue'
+import calendarModule from '../modules/Calendar'
+import taskPanelModule from '../modules/TaskPanel'
+import streakModule from '../modules/Streak'
 import { ref, onMounted, markRaw } from 'vue'
 import { watch } from 'vue'
+
+
 
 const calendarEvents = ref([])
 const calendarComponent = ref(null)
@@ -35,6 +38,32 @@ const eventSourceKey = ref(0)
 const gridSize = ref(32)
 const resizeMode = ref(false)
 const maxRows = ref(Math.floor(window.innerHeight / gridSize.value))
+
+function addModule(module) {
+  const { i, x, y, w, h, minW, minH } = module
+  if ([i, x, y, w, h].some(v => v === undefined)) {
+    console.warn('Module missing layout data:', module)
+    return
+  }
+
+  layout.value.push({
+    i, x, y, w, h, minW, minH,
+    component: module.component,
+    props: module.props
+  })
+}
+
+const layout = ref([
+  {
+    ...calendarModule.defaultLayout,
+    component: calendarModule.component,
+    props: calendarModule.getProps({
+      events: calendarEvents,
+      eventSourceKey,
+      onEventAdded: loadEvents
+    })
+  }
+])
 
 watch(resizeMode, async (newVal, oldVal) => {
   if (oldVal === true && newVal === false) {
@@ -47,11 +76,16 @@ watch(resizeMode, async (newVal, oldVal) => {
 
 async function saveLayoutToFile() {
   try {
+    const layoutToSave = layout.value.map(({ i, x, y, w, h, minW, minH }) => ({
+      i, x, y, w, h, minW, minH
+    }))
+
     const res = await fetch('/api/save-layout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(layout.value)
+      body: JSON.stringify(layoutToSave)
     })
+
     const data = await res.json()
     if (data.success) {
       console.log('Layout saved.')
@@ -64,8 +98,8 @@ async function saveLayoutToFile() {
 }
 
 onMounted(async () => {
-  try {
-    const res = await fetch('/api/load-layout')
+  const tryLoadLayout = async (url) => {
+    const res = await fetch(url)
     const data = await res.json()
 
     if (Array.isArray(data) && data.length > 0) {
@@ -74,53 +108,28 @@ onMounted(async () => {
         component: resolveComponent(item.i),
         props: getComponentProps(item.i)
       }))
-    } else {
-      console.log('No saved layout found, using default.')
-      layout.value = getDefaultLayout()
+      return true
     }
-  } catch {
-    console.log('Error loading layout, using default.')
-    layout.value = getDefaultLayout()
+
+    return false
+  }
+
+  const loaded = await tryLoadLayout('/api/load-layout')
+
+  if (!loaded) {
+    console.log('Falling back to default layout.')
+    await tryLoadLayout('/api/default-layout')
   }
 
   loadEvents()
 })
 
-function getDefaultLayout() {
-  return [
-    {
-      i: 'calendar',
-      x: 0,
-      y: 0,
-      w: 9,
-      h: 22,
-      minW: 9,
-      minH: 22,
-      component: markRaw(Calendar),
-      props: {
-        events: calendarEvents,
-        eventSourceKey,
-        onEventAdded: loadEvents
-      }
-    },
-    {
-      i: 'tasks',
-      x: 6,
-      y: 0,
-      w: 3,
-      h: 5,
-      component: markRaw(TaskPanel),
-      props: {
-        events: calendarEvents
-      }
-    }
-  ]
-}
 
 function resolveComponent(id) {
   switch (id) {
-    case 'calendar': return markRaw(Calendar)
-    case 'tasks': return markRaw(TaskPanel)
+    case 'calendar': return calendarModule.component
+    case 'tasks': return taskPanelModule.component
+    case 'streak': return streakModule.component
     default: return null
   }
 }
@@ -128,15 +137,15 @@ function resolveComponent(id) {
 function getComponentProps(id) {
   switch (id) {
     case 'calendar':
-      return {
+      return calendarModule.getProps({
         events: calendarEvents,
         eventSourceKey,
         onEventAdded: loadEvents
-      }
+      })
     case 'tasks':
-      return {
-        events: calendarEvents
-      }
+      return taskPanelModule.getProps({ events: calendarEvents })
+    case 'streak':
+      return streakModule.getProps()
     default:
       return {}
   }
@@ -147,35 +156,6 @@ onMounted(() => {
     maxRows.value = Math.floor(window.innerHeight / gridSize.value)
   })
 })
-
-const layout = ref([
-  {
-    i: 'calendar',
-    x: 0,
-    y: 0,
-    w: 9,
-    h: 22,
-    minW: 9,
-    minH: 22,
-    component: markRaw(Calendar),
-    props: {
-      events: calendarEvents,
-      eventSourceKey,
-      onEventAdded: loadEvents
-    }
-  },
-  {
-    i: 'tasks',
-    x: 6,
-    y: 0,
-    w: 3,
-    h: 5,
-    component: markRaw(TaskPanel),
-    props: {
-      events: calendarEvents
-    }
-  }
-])
 
 async function loadEvents() {
   const res = await fetch('/api/events')
