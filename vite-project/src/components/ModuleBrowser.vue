@@ -1,48 +1,80 @@
-<!-- src/components/ModuleBrowser.vue -->
 <template>
     <div
       v-if="visible"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50 flex flex-col"
     >
-      <div class="bg-white w-3/4 max-h-[90vh] overflow-y-auto p-4 rounded shadow">
-        <h2 class="text-xl font-bold mb-4">Module Browser</h2>
-        <div class="grid grid-cols-2 gap-4">
-          <div
-            v-for="mod in modules"
-            :key="mod.id"
-            class="border rounded p-4 flex flex-col justify-between"
-          >
-            <div>
-              <h3 class="font-semibold mb-2">{{ mod.title }}</h3>
-              <component
-                :is="mod.component"
-                v-bind="mod.props"
-                class="pointer-events-none opacity-50"
-              />
-            </div>
-            <button
-              class="mt-2 bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600"
-              @click="$emit('add-module', mod)"
-            >
-              ＋ Add
-            </button>
-          </div>
-        </div>
-        <button
-          class="mt-6 block ml-auto bg-gray-200 px-4 py-2 rounded"
-          @click="$emit('close')"
-        >
+      <div class="p-4 border-b">
+        <h2 class="text-xl font-bold">Add Modules</h2>
+        <button @click="$emit('close')" class="mt-2 text-sm text-blue-600">
           Close
         </button>
+      </div>
+  
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 grid-background">
+        <div
+  v-for="mod in modules"
+  :key="mod.id"
+  draggable="true"
+  @dragstart="(e) => onDragStart(e, mod)"
+  class="bg-gray-100 border rounded shadow p-2 cursor-grab hover:shadow-md transition"
+>
+  <p class="text-xs text-gray-500">{{ mod.id }}</p>
+  <component
+    :is="mod.component"
+    v-bind="mod.props"
+    class="pointer-events-none opacity-70"
+  />
+</div>
+
       </div>
     </div>
   </template>
   
   <script setup>
-  defineProps({
+  import { onMounted } from 'vue'
+  const props = defineProps({
     visible: Boolean,
     modules: Array
   })
+  const emit = defineEmits(['close', 'drag-start'])
   
-  defineEmits(['close', 'add-module'])
-  </script>  
+  function onDragStart(e, mod) {
+    const ghost = document.createElement('div')
+    ghost.style.width = '80px'
+    ghost.style.height = '80px'
+    ghost.style.background = '#ccc'
+    ghost.style.opacity = '0'
+    document.body.appendChild(ghost)
+  
+    e.dataTransfer.setDragImage(ghost, 40, 40)
+    e.dataTransfer.setData('application/json', JSON.stringify(mod))
+    e.dataTransfer.effectAllowed = 'copy'
+  
+    setTimeout(() => document.body.removeChild(ghost), 0)
+    emit('drag-start', mod)
+  }
+
+  onMounted(() => {
+  console.log('Module browser received modules:', props.modules)
+})
+
+  </script>
+  
+  <style scoped>
+  .grid-background {
+    background: repeating-linear-gradient(
+        to right,
+        #eee,
+        #eee 1px,
+        transparent 1px,
+        transparent 25px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        #eee,
+        #eee 1px,
+        transparent 1px,
+        transparent 25px
+      );
+  }
+  </style>  

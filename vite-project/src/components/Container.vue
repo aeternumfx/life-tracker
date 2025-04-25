@@ -1,53 +1,57 @@
 <template>
-    <div class="grow-layout relative">
-      <!-- Grid Overlay applied behind everything with ripple animation -->
-      <div
-        v-if="resizeMode"
-        class="grid-overlay ripple-enter pointer-events-none z-0"
-      />
-  
-      <grid-layout
-        class="full-grid z-10"
-        :layout="layout"
-        :col-num="cols"
-        :row-height="gridSize"
-        :is-draggable="resizeMode"
-        :is-resizable="resizeMode"
-        :margin="[0, 0]"
-        :use-css-transforms="true"
-        :responsive="false"
-        :max-rows="maxRows"
-        @layout-updated="onLayoutUpdated"
+  <GridLayout
+    :layout="layout"
+    :col-num="cols"
+    :row-height="gridSize"
+    :max-rows="maxRows"
+    :is-draggable="resizeMode"
+    :is-resizable="resizeMode"
+    :vertical-compact="true"
+    :use-css-transforms="true"
+    @layout-updated="(l) => emit('update:layout', l)"
+  >
+    <template v-for="item in layout" :key="item.i">
+      <GridItem
+        :x="item.x"
+        :y="item.y"
+        :w="item.w"
+        :h="item.h"
+        :i="item.i"
+        :min-w="item.minW"
+        :min-h="item.minH"
       >
-        <grid-item
-          v-for="item in layout"
-          :key="item.i"
-          :x="item.x"
-          :y="item.y"
-          :w="item.w"
-          :h="item.h"
-          :i="item.i"
-          :static="item.static || false"
-          :min-w="item.minW || 2"
-          :min-h="item.minH || 2"
-          v-show="!item.hidden"
-          :class="{ 'resize-border': resizeMode }"
-        >
-          <div class="relative w-full h-full">
-            <component
-              v-if="!item.hidden"
-              :is="item.component"
-              v-bind="item.props"
-            />
+        <div class="relative h-full w-full border rounded overflow-hidden">
+          <!-- Delete + Settings buttons -->
+          <div
+            v-if="resizeMode"
+            class="absolute top-1 right-1 flex gap-1 z-10"
+          >
+            <button
+              @click="emit('delete-module', item.i)"
+              class="text-white bg-red-600 hover:bg-red-700 rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"
+              title="Remove"
+            >
+              ✕
+            </button>
+            <button
+              class="text-gray-600 bg-white border rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"
+              title="Settings"
+            >
+              ⋮
+            </button>
           </div>
-        </grid-item>
-      </grid-layout>
-    </div>
-  </template>  
+
+          <!-- Module component -->
+          <component :is="item.component" v-bind="item.props" class="h-full w-full" />
+        </div>
+      </GridItem>
+    </template>
+  </GridLayout>
+</template>
+
   
   
   <script setup>
-  import { ref } from 'vue'
   import { GridLayout, GridItem } from 'vue3-grid-layout'
   
   // props
@@ -61,11 +65,12 @@
 
   
   // emits layout update
-  const emit = defineEmits(['update:layout'])
+  const emit = defineEmits(['update:layout', 'delete-module'])
   
   function onLayoutUpdated(newLayout) {
     emit('update:layout', newLayout)
   }
+
   </script>
   
   <style>
