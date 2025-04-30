@@ -13,8 +13,6 @@
   v-if="showThemeManager"
   @close="showThemeManager = false"
 />
-
-
     <!-- Main Area with optional module browser -->
     <div class="flex flex-1 relative overflow-hidden">
       <!-- Grid layout area -->
@@ -26,15 +24,18 @@
   @dragover.prevent
   @drop="handleDrop"
 >
-  <Container
-    :layout="layout"
-    :gridSize="32"
-    :resizeMode="resizeMode"
-    :cols="12"
-    :maxRows="maxRows.value"
-    @update:layout="(newLayout) => layout = newLayout"
-    @delete-module="handleDeleteModule"
-  />
+<Container
+  :layout="layout"
+  :gridSize="32"
+  :resizeMode="resizeMode"
+  :cols="12"
+  :maxRows="maxRows.value"
+  @update:layout="(newLayout) => layout = newLayout"
+  @delete-module="handleDeleteModule"
+  @open-settings="(id) => openSettingsFor.value = id"
+  :onGlobalSettingsClicked="handleGlobalSettingsClicked"
+/>
+
 </div>
       </div>
 
@@ -45,6 +46,19 @@
 />
     </div>
   </div>
+
+<!-- Global Settings Panel Overlay -->
+<div v-if="showSettingsPanel"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+  <div class="bg-[color:var(--color-surface)] p-6 rounded shadow-xl max-w-md w-full">
+    <component
+  :is="activeSettingsComponent"
+  @close="closeSettingsPanel"
+  @refresh="refreshActiveModule"
+/>
+  </div>
+</div>
+
 </template>
 
 <script setup>
@@ -56,7 +70,38 @@ import ModuleBrowser from '../components/ModuleBrowser.vue'
 import modules from '../modules/_allModules'
 import calendarModule from '../modules/Calendar'
 import ThemeManager from '../components/ThemeManager.vue'
+import TaskPanelSettings from '../modules/TaskPanel/TaskPanelSettings.vue'
 
+
+const openSettingsFor = ref(null)
+const activeSettingsComponent = ref(null)
+const showSettingsPanel = ref(false)
+
+function handleGlobalSettingsClicked(component) {
+  activeSettingsComponent.value = component
+  showSettingsPanel.value = true
+
+  // 🔧 Add this line to track which module is being edited
+  openSettingsFor.value = component?.__moduleId || null
+}
+
+function closeSettingsPanel() {
+  showSettingsPanel.value = false
+  activeSettingsComponent.value = null
+}
+
+function refreshActiveModule() {
+  const timestamp = Date.now()
+  layout.value = layout.value.map(item => ({
+    ...item,
+    props: {
+      ...item.props,
+      refreshKey: timestamp
+    }
+  }))
+
+  //console.log('🔁 Triggered global refresh for all modules')
+}
 
 // State refs
 const layout = ref([])
@@ -159,8 +204,11 @@ function handleDrop(event) {
     minW: moduleData.minW,
     minH: moduleData.minH,
     component: moduleData.component,
-    props: moduleData.props
-  })
+    props: {
+      ...moduleData.props,
+      refreshKey: Date.now()
+    }
+    })
 }
 
 function loadEvents() {
@@ -284,6 +332,7 @@ function resolveModuleData(id) {
 
   return {
     component: match.component,
+    refreshKey: Date.now(),
     props: match.props || {},
     minW: match.minW || 2,
     minH: match.minH || 2,

@@ -17,6 +17,9 @@ app.use(express.json())
 
 // 📦 Mount unified API router
 app.use('/api', apiRouter)
+import moduleRoutes from './moduleRoutes.js'
+
+app.use('/api/modules', moduleRoutes)
 
 // 🔧 Path setup for layout
 const __filename = fileURLToPath(import.meta.url)

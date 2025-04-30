@@ -25,65 +25,106 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import AddItemDialog from './AddItemDialog.vue'
 
-// Props and emits
 const props = defineProps({
   events: Array,
   eventSourceKey: Number
 })
 const emit = defineEmits(['event-added'])
 
-// Calendar ref
 const calendarRef = ref(null)
-defineExpose({ calendarRef })
-
 const dialog = ref(null)
+defineExpose({ calendarRef })
 
 let resizeObserver
 onMounted(() => {
   const el = calendarRef.value?.$el
-  if (!el) return
-
-  resizeObserver = new ResizeObserver(() => {
-    calendarRef.value.getApi().updateSize()
-  })
-  resizeObserver.observe(el)
+  if (el) {
+    resizeObserver = new ResizeObserver(() => {
+      calendarRef.value.getApi().updateSize()
+    })
+    resizeObserver.observe(el)
+  }
 })
+onBeforeUnmount(() => resizeObserver?.disconnect())
 
-onBeforeUnmount(() => {
-  resizeObserver?.disconnect()
-})
-
-// FullCalendar config
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin],
   initialView: 'dayGridMonth',
   eventClick: handleEventClick,
+  displayEventEnd: true,
+  eventDisplay: 'block',
+
+  eventContent({ event }) {
+  const start = new Date(event.start)
+  const end = new Date(event.end)
+
+  const startMinutes = start.getHours() * 60 + start.getMinutes()
+  const endMinutes = end.getHours() * 60 + end.getMinutes()
+
+  const startPercent = (startMinutes / 1440) * 100
+  const endPercent = (endMinutes / 1440) * 100
+
+  const fadeSize = 10
+  const gradientStart = Math.max(0, startPercent - fadeSize)
+  const gradientFadeStart = startPercent
+  const gradientFadeEnd = endPercent
+  const gradientEnd = Math.min(100, endPercent + fadeSize)
+
+  // Use CSS var for secondary color
+  const gradientStyle = `
+    background: linear-gradient(
+      to right,
+      rgba(var(--color-secondary-rgb), 0) ${gradientStart}%,
+      rgba(var(--color-secondary-rgb), 0.8) ${gradientFadeStart}%,
+      rgba(var(--color-secondary-rgb), 0.8) ${gradientFadeEnd}%,
+      rgba(var(--color-secondary-rgb), 0) ${gradientEnd}%
+    );
+    border-radius: 4px;
+    padding: 2px 4px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  `
+
+  return {
+    html: `<div style="${gradientStyle}">${event.title}</div>`
+  }
+},
+
   eventSources: [
     {
       id: `source-${props.eventSourceKey}`,
       events: (fetchInfo, successCallback) => {
-        successCallback(props.events || [])
+        const parsedEvents = (props.events || [])
+          .filter(e => !!e.date)
+          .map(e => {
+            const start = new Date(`${e.date}T${e.time || '00:00'}`)
+            if (isNaN(start)) return null
+            const end = e.duration_minutes ? new Date(start.getTime() + e.duration_minutes * 60000) : null
+            return {
+              id: e.id,
+              title: e.title,
+              start: start.toISOString(),
+              end: end?.toISOString(),
+              allDay: !!e.is_all_day,
+            }
+          })
+          .filter(Boolean)
+        successCallback(parsedEvents)
       }
     }
   ]
 }))
 
-// Delete event logic
 async function handleEventClick(info) {
   const confirmed = confirm(`Delete event "${info.event.title}"?`)
   if (!confirmed) return
 
   try {
-    const res = await fetch(`/api/events/${info.event.id}`, {
-      method: 'DELETE'
-    })
+    const res = await fetch(`/api/events/${info.event.id}`, { method: 'DELETE' })
     const result = await res.json()
-
-    if (result.success) {
-      emit('event-added') // Trigger reload
-    } else {
-      console.error('Failed to delete event')
-    }
+    if (result.success) emit('event-added')
+    else console.error('Failed to delete event')
   } catch (err) {
     console.error('Error deleting event:', err)
   }

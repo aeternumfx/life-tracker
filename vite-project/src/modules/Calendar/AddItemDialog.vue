@@ -424,9 +424,10 @@ watch(() => form.endDate, (newVal, oldVal) => {
     if (form.durationValue && !(form.startDate && form.endDate)) {
       body.duration_minutes = convertToMinutes(form.durationValue, form.durationUnit)
     } else if (form.startTime && form.endTime) {
-      const [sh, sm] = form.startTime.split(':').map(Number)
-      const [eh, em] = form.endTime.split(':').map(Number)
-      body.duration_minutes = (eh * 60 + em) - (sh * 60 + sm)
+      const startDateTime = new Date(`${form.startDate}T${form.startTime}`)
+const endDateTime = new Date(`${form.endDate}T${form.endTime}`)
+
+body.duration_minutes = Math.floor((endDateTime - startDateTime) / 60000)
     }
   
     const res = await fetch('/api/events', {

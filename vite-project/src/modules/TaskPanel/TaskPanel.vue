@@ -4,6 +4,8 @@
     style="background-color: var(--color-surface); color: var(--color-textPrimary); border-color: var(--color-primary);"
   >
     <h2 class="text-lg font-semibold mb-4">Upcoming Events</h2>
+
+    <!-- Event List -->
     <ul class="space-y-2">
       <li
         v-for="event in sortedEvents"
@@ -13,41 +15,100 @@
       >
         <strong>{{ event.title }}</strong>
         <div class="text-sm" style="color: var(--color-textSecondary);">
-          {{ formatDate(event.date) }}
+          {{ formatEventDate(event) }}
         </div>
       </li>
     </ul>
+
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { format, isAfter, startOfToday } from 'date-fns'
+import { ref, watch, computed, onMounted, markRaw } from 'vue'
+import { format, isAfter, startOfToday, addMinutes, isSameDay } from 'date-fns'
+import TaskPanelSettings from './TaskPanelSettings.vue'
 
 const props = defineProps({
+  refreshKey: Number,
+  onSettingsClicked: Function,
   events: {
     type: Array,
     default: () => []
   }
 })
 
+onMounted(() => {
+  //console.log('🚀 Mounted with refreshKey:', props.refreshKey)
+
+  if (props.onSettingsClicked) {
+    props.onSettingsClicked(() => markRaw(TaskPanelSettings))
+  }
+
+  loadSettings()
+})
+
+
+const settings = ref({
+  limitEvents: false,
+  maxEvents: 5
+})
+
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/modules/TaskPanel/settings')
+    if (res.ok) {
+      const data = await res.json()
+      settings.value = data
+    } else {
+      console.warn('⚠️ Failed to load task panel settings')
+    }
+  } catch (err) {
+    console.error('❌ Error loading settings:', err)
+  }
+}
+
+watch(
+  () => props.refreshKey,
+  (val) => {
+    //console.log('🔄 TaskPanel refreshKey changed:', val)
+    loadSettings()
+  }
+)
+
+
 const sortedEvents = computed(() => {
   const today = startOfToday()
-  return [...props.events]
+  let filtered = [...props.events]
     .filter(event => isAfter(new Date(event.date), today) || isSameDay(new Date(event.date), today))
     .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  if (settings.value.limitEvents) {
+    filtered = filtered.slice(0, settings.value.maxEvents)
+  }
+
+  return filtered
 })
 
 function formatDate(dateStr) {
   return format(new Date(dateStr), 'EEE, MMM d')
 }
 
-function isSameDay(a, b) {
-  return a.getFullYear() === b.getFullYear() &&
-         a.getMonth() === b.getMonth() &&
-         a.getDate() === b.getDate()
+function formatEventDate(event) {
+  const start = new Date(`${event.date}T${event.time || '00:00'}`)
+  let end = null
+
+  if (event.duration_minutes) {
+    end = addMinutes(start, event.duration_minutes)
+  }
+
+  if (!end || isSameDay(start, end)) {
+    return formatDate(event.date)
+  } else {
+    return `${formatDate(start)} - ${formatDate(end)}`
+  }
 }
 </script>
+
 
 <style scoped>
 .taskpanel {
