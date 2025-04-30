@@ -215,7 +215,7 @@ async function loadLayoutFromFile() {
   try {
     const res = await fetch('/api/load-layout')
     const data = await res.json()
-    if (!Array.isArray(data)) throw new Error('Layout is invalid or empty')
+    if (!Array.isArray(data) || data.length === 0) throw new Error('Layout is invalid or empty')
 
     layout.value = data.map(item => {
       const moduleData = resolveModuleData(item.i)
@@ -227,8 +227,11 @@ async function loadLayoutFromFile() {
         minH: moduleData?.minH || 2
       }
     })
+
+    return true // ✅ success
   } catch (err) {
     console.warn('Failed to reload layout from file:', err)
+    return false // ❌ failure
   }
 }
 

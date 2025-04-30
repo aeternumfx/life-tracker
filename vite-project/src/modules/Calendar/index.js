@@ -13,6 +13,8 @@ export default {
     minW: 9,
     minH: 10
   },
+  defW: 9,
+  defH:10,
   getProps: ({ events = [], eventSourceKey = 0, onEventAdded = () => {} } = {}) => ({
     events,
     eventSourceKey,

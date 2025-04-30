@@ -2,8 +2,10 @@
 import Database from 'better-sqlite3'
 import fs from 'fs'
 import path from 'path'
+import dotenv from 'dotenv';
+dotenv.config();
 
-const dbPath = path.resolve('./server/data/lifetracker.db')
+const dbPath = path.resolve(process.env.DB_PATH);
 
 // Wipe existing DB
 if (fs.existsSync(dbPath)) {
