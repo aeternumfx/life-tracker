@@ -2,7 +2,7 @@
 import DynamicList from './DynamicList.vue'
 
 export default {
-  id: 'dynamiclist',
+  id: 'dynamic_list',
   title: 'Dynamic List',
   component: DynamicList,
   defaultLayout: {

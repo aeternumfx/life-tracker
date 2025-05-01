@@ -62,24 +62,31 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, markRaw } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, markRaw, computed } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import EditBar from '../components/EditBar.vue'
 import Container from '../components/Container.vue'
 import ModuleBrowser from '../components/ModuleBrowser.vue'
 import modules from '../modules/_allModules'
-import calendarModule from '../modules/Calendar'
 import ThemeManager from '../components/ThemeManager.vue'
-import TaskPanelSettings from '../modules/TaskPanel/TaskPanelSettings.vue'
+import { useModuleSettingsStore } from '@/stores/moduleSettingsStore'
+
+const layout = ref([])
+
+const activeModuleIds = computed(() =>
+  layout.value.map(l => l.i)
+)
 
 onMounted(() => {
   window.addEventListener('toggle-edit-mode', enableEditMode)
 })
 
+
 onBeforeUnmount(() => {
   window.removeEventListener('toggle-edit-mode', enableEditMode)
 })
 
+const settingsStore = useModuleSettingsStore()
 const openSettingsFor = ref(null)
 const activeSettingsComponent = ref(null)
 const showSettingsPanel = ref(false)
@@ -91,6 +98,18 @@ function handleGlobalSettingsClicked(component) {
   // 🔧 Add this line to track which module is being edited
   openSettingsFor.value = component?.__moduleId || null
 }
+
+
+
+const loadedSettings = new Set()
+
+watch(activeModuleIds, async (newIds) => {
+  const toLoad = newIds.filter(id => !loadedSettings.has(id))
+  if (toLoad.length === 0) return
+
+  await settingsStore.preloadSettings(toLoad)
+  toLoad.forEach(id => loadedSettings.add(id))
+})
 
 function closeSettingsPanel() {
   showSettingsPanel.value = false
@@ -111,7 +130,6 @@ function refreshActiveModule() {
 }
 
 // State refs
-const layout = ref([])
 const calendarEvents = ref([])
 const eventSourceKey = ref(0)
 const resizeMode = ref(false)
@@ -121,6 +139,7 @@ const maxRows = ref(Math.floor(window.innerHeight / gridSize.value))
 const suppressResizePrompt = ref(false)
 const isEditMode = ref(false)
 const showThemeManager = ref(false)
+
 
 function enableEditMode() {
   isEditMode.value = true

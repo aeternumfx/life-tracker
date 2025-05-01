@@ -41,27 +41,17 @@
   
   <script setup>
   import { ref } from 'vue'
+  import { useProjectStore } from '@/stores/projectStore'
   
-  const emit = defineEmits(['close', 'refresh'])
-  
-  const project = ref({
-    name: '',
-    description: ''
-  })
+  const emit = defineEmits(['close'])
+  const project = ref({ name: '', description: '' })
+  const projectStore = useProjectStore()
   
   async function saveProject() {
     if (!project.value.name.trim()) return alert('Project name is required')
   
     try {
-      const res = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project.value)
-      })
-      const result = await res.json()
-      if (!result.success) throw new Error('Add failed')
-  
-      emit('refresh')
+      await projectStore.addProject(project.value)
       emit('close')
     } catch (err) {
       console.error('Failed to save project:', err)

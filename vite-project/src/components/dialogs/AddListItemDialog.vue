@@ -109,7 +109,7 @@
   })
 
   onMounted(async () => {
-  const res = await fetch('/api/modules/DynamicList/lists')
+  const res = await fetch('/api/lists')
   if (res.ok) {
     availableLists.value = await res.json()
     // Default selection to 'listless' if nothing is chosen
@@ -130,7 +130,7 @@
   onMounted(fetchAllTags)
   
   async function fetchAllTags() {
-    const res = await fetch('/api/modules/DynamicList/lists')
+    const res = await fetch('/api/lists')
     if (res.ok) {
       const lists = await res.json()
       const tagSet = new Set()

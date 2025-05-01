@@ -19,7 +19,6 @@
       </div>
     </div>
   </template>
-  
   <script setup>
   import { ref, onMounted } from 'vue'
   import { loadTheme, getAvailableThemes } from '../utils/themeLoader'
@@ -42,13 +41,5 @@
       console.error('Failed to load theme:', err)
     }
   }
-
-  function hexToRgb(hex) {
-  if (!hex || !hex.startsWith('#') || (hex.length !== 7 && hex.length !== 4)) return ''
-  if (hex.length === 4) {
-    hex = '#' + [...hex.slice(1)].map(x => x + x).join('')
-  }
-  const [r, g, b] = hex.match(/\w\w/g).map(c => parseInt(c, 16))
-  return `${r}, ${g}, ${b}`
-}
+  
   </script>  

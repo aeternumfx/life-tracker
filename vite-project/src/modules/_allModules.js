@@ -2,11 +2,12 @@ import { markRaw } from 'vue'
 const modules = import.meta.glob('./*/index.js', { eager: true })
 
 export default Object.entries(modules).map(([path, mod]) => {
-    const id = path.split('/')[1]
+  const id = path.split('/')[1].toLowerCase()
     const def = mod.default
+    
   
     return {
-      id: def.id || id,
+      id: (def.id || id).toLowerCase(),
       component: markRaw(def.component),
       title: def.title || id,
       help: def.help || '',

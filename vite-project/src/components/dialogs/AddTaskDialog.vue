@@ -14,13 +14,20 @@
   
   <script setup>
   import { reactive } from 'vue'
+  import { useTaskStore } from '@/stores/taskStore'
+  
   const emit = defineEmits(['item-added'])
+  const taskStore = useTaskStore()
   
   const form = reactive({
-    title: ''
+    title: '',
+    description: '',
+    due_date: null,
+    due_time: null
   })
   
-  function submitForm() {
-    emit('item-added', { ...form, type: 'task' })
+  async function submitForm() {
+    await taskStore.addTask(form)
+    emit('item-added', { ...form }) // Optionally still emit for UI close
   }
-  </script>  
+  </script>

@@ -1,10 +1,10 @@
 // modules/TaskPanel/index.js
-import { markRaw } from 'vue'
 import TaskPanel from './TaskPanel.vue'
 
 export default {
-  id: 'tasks',
-  component: markRaw(TaskPanel),
+  id: 'task_panel',
+  title: 'Tasks',
+  component: TaskPanel,
   defaultLayout: {
     i: 'tasks',
     x: 9,
@@ -14,6 +14,8 @@ export default {
     minW: 3,
     minH: 5
   },
+  defW: 3,
+  defH: 5,
   getProps: ({ events }) => ({
     events
   })

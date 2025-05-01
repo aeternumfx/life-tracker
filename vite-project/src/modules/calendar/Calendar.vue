@@ -14,22 +14,36 @@
       <FullCalendar :options="calendarOptions" ref="calendarRef" />
 
       <!-- Add Dialog -->
-      <CalendarAddItemDialog ref="dialog" @item-added="emit('event-added')" />
+      <CalendarAddItemDialog ref="dialog" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import CalendarAddItemDialog from './CalendarAddItemDialog.vue'
+import { useEventStore } from '@/stores/eventStore'
 
-const props = defineProps({
-  events: Array,
-  eventSourceKey: Number
+const eventStore = useEventStore()
+
+watch(
+  () => eventStore.events,
+  () => {
+    calendarRef.value?.getApi()?.refetchEvents()
+  },
+  { deep: true }
+)
+
+onMounted(async () => {
+  await eventStore.loadEvents()
+  calendarRef.value?.getApi()?.refetchEvents()
 })
-const emit = defineEmits(['event-added'])
+
+onMounted(() => {
+  eventStore.loadEvents()
+})
 
 const calendarRef = ref(null)
 const dialog = ref(null)
@@ -93,9 +107,9 @@ const calendarOptions = computed(() => ({
 
   eventSources: [
     {
-      id: `source-${props.eventSourceKey}`,
-      events: (fetchInfo, successCallback) => {
-        const parsedEvents = (props.events || [])
+      id: 'eventStoreSource',
+ events: (fetchInfo, successCallback) => {
+   const parsedEvents = (eventStore.events || [])
           .filter(e => !!e.date)
           .map(e => {
             const start = new Date(`${e.date}T${e.time || '00:00'}`)
@@ -121,10 +135,9 @@ async function handleEventClick(info) {
   if (!confirmed) return
 
   try {
-    const res = await fetch(`/api/events/${info.event.id}`, { method: 'DELETE' })
-    const result = await res.json()
-    if (result.success) emit('event-added')
-    else console.error('Failed to delete event')
+    await eventStore.softDeleteEvent(info.event.id)
+ await eventStore.loadEvents()
+ calendarRef.value?.getApi().refetchEvents()
   } catch (err) {
     console.error('Error deleting event:', err)
   }

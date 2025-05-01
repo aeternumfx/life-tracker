@@ -156,6 +156,7 @@
   <script setup>
   import { ref, computed, onMounted } from 'vue'
   import AddProjectDialog from '../components/AddProjectDialog.vue'
+    import { useProjectStore } from '@/stores/projectStore'
   
   const showAddDialog = ref(false)
   const sidebarCollapsed = ref(false)
@@ -164,7 +165,8 @@
   const selectedProjectId = ref(null)
   const insideProject = ref(false)
   const currentView = ref('overview')
-  const projects = ref([])
+  const projectStore = useProjectStore()
+
   
   function toggleSidebar() {
     sidebarCollapsed.value = !sidebarCollapsed.value
@@ -188,23 +190,27 @@
   }
   
   const filteredProjects = computed(() =>
-    projects.value.filter((project) => {
-      const matchesSearch = project.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      const matchesFilter = !selectedFilter.value || project.status === selectedFilter.value
-      return matchesSearch && matchesFilter
-    })
-  )
+  projectStore.projects.filter((project) => {
+    const matchesSearch = project.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesFilter = !selectedFilter.value || project.status === selectedFilter.value
+    return matchesSearch && matchesFilter
+  })
+)
   
-  const selectedProject = computed(() =>
-    projects.value.find((p) => p.id === selectedProjectId.value)
-  )
+const selectedProject = computed(() =>
+  projectStore.projects.find((p) => p.id === selectedProjectId.value)
+)
+
   
   async function refreshProjects() {
     const res = await fetch('/api/projects')
     projects.value = await res.json()
   }
   
-  onMounted(refreshProjects)
+  onMounted(() => {
+  projectStore.loadProjects()
+})
+
   </script>
   
   <style scoped>

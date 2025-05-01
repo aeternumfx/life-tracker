@@ -14,6 +14,7 @@
 <AddEventDialog
   v-if="selectedType === 'event'"
   @item-added="submitEvent"
+  @close="handleChildClose"
 />
 <AddTaskDialog
   v-if="selectedType === 'task'"
@@ -28,6 +29,7 @@
   import { ref } from 'vue'
   import AddEventDialog from '@/components/dialogs/AddEventDialog.vue'
   import AddTaskDialog from '@/components/dialogs/AddTaskDialog.vue'
+  import { useEventStore } from '@/stores/eventStore'
   
   const emit = defineEmits(['item-added'])
   const dialogRef = ref(null)
@@ -43,19 +45,18 @@
     dialogRef.value?.close()
   }
 
-  async function submitEvent(data) {
-  const res = await fetch('/api/events', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  if (res.ok) {
-    emit('item-added')
-    dialogRef.value?.close()
-  } else {
-    console.error('❌ Failed to create event')
-  }
+  function handleChildClose() {
+  dialogRef.value?.close()
 }
+
+
+ const eventStore = useEventStore()
+ async function submitEvent(data) {
+   await eventStore.addEvent(data)
+   await eventStore.loadEvents()
+   dialogRef.value?.close()
+   // Optionally: calendarRef.value?.getApi().refetchEvents() — or let computed source update
+ }
 
 function submitTask(data) {
   // TODO: implement real task handling

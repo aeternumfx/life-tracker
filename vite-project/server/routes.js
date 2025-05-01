@@ -1,4 +1,6 @@
 // vite-project/server/routes.js
+import fs from 'fs'
+import path from 'path'
 import express from 'express'
 import * as projectApi from '../db/api/projects.js'
 import * as eventApi from '../db/api/events.js'
@@ -115,8 +117,25 @@ router.delete('/lists/items/:id', (req, res) => {
   res.json({ success: true })
 })
 
+router.get('/modules/:id/settings', (req, res) => {
+  const moduleId = req.params.id
+  const settingsPath = path.resolve(`src/modules/${moduleId}/settings.json`)
 
-console.log('✅ routes.js loaded')
+  if (!fs.existsSync(settingsPath)) {
+    return res.status(404).send('Settings file not found')
+  }
+
+  try {
+    const contents = fs.readFileSync(settingsPath, 'utf-8')
+    const json = JSON.parse(contents)
+    res.json(json)
+  } catch (err) {
+    console.error(`❌ Failed to load settings.json for module '${moduleId}':`, err)
+    res.status(500).json({ error: 'Failed to parse settings file' })
+  }
+})
+
+// console.log('✅ routes.js loaded')
 
 
 export default router

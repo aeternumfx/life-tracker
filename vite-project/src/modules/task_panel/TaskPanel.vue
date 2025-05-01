@@ -43,37 +43,25 @@ onMounted(() => {
   if (props.onSettingsClicked) {
     props.onSettingsClicked(() => markRaw(TaskPanelSettings))
   }
-
-  loadSettings()
 })
 
 
-const settings = ref({
-  limitEvents: false,
-  maxEvents: 5
+import { useModuleSettingsStore } from '@/stores/moduleSettingsStore'
+
+const settingsStore = useModuleSettingsStore()
+const moduleId = 'task_panel'
+const settings = computed(() => settingsStore.getSettings(moduleId))
+
+onMounted(() => {
+  settingsStore.loadSettings(moduleId)
+  if (props.onSettingsClicked) {
+    props.onSettingsClicked(() => markRaw(TaskPanelSettings))
+  }
 })
 
-async function loadSettings() {
-  try {
-    const res = await fetch('/api/modules/TaskPanel/settings')
-    if (res.ok) {
-      const data = await res.json()
-      settings.value = data
-    } else {
-      console.warn('⚠️ Failed to load task panel settings')
-    }
-  } catch (err) {
-    console.error('❌ Error loading settings:', err)
-  }
-}
-
-watch(
-  () => props.refreshKey,
-  (val) => {
-    //console.log('🔄 TaskPanel refreshKey changed:', val)
-    loadSettings()
-  }
-)
+watch(() => props.refreshKey, () => {
+  settingsStore.loadSettings(moduleId)
+})
 
 
 const sortedEvents = computed(() => {

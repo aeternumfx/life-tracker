@@ -152,8 +152,10 @@
   
   <script setup>
   import { reactive, computed, watch } from 'vue'
+  import { useEventStore } from '@/stores/eventStore'
   
-  const emit = defineEmits(['item-added'])
+  const emit = defineEmits(['item-added', 'close'])
+  const eventStore = useEventStore()
   
   const form = reactive({
     title: '',
@@ -170,6 +172,25 @@
     _dirtyStartTime: false,
     _dirtyEndTime: false
   })
+
+  function resetForm() {
+  Object.assign(form, {
+    title: '',
+    description: '',
+    startDate: '',
+    startTime: '00:00',
+    endDate: '',
+    endTime: '23:59',
+    durationValue: null,
+    durationUnit: '',
+    durationFrom: '',
+    _dirtyStartDate: false,
+    _dirtyEndDate: false,
+    _dirtyStartTime: false,
+    _dirtyEndTime: false
+  })
+}
+
   
   function handleStartTimeBlur() {
     form._dirtyStartTime = true
@@ -230,25 +251,28 @@
     return value * map[unit]
   }
   
-  function submitForm() {
-    if (!isFormValid.value) return
-  
-    const body = {
-      title: form.title,
-      description: form.description,
-      date: form.startDate,
-      time: form.startTime || null,
-      is_all_day: !form.startTime
-    }
-  
-    if (form.durationValue && !(form.startDate && form.endDate)) {
-      body.duration_minutes = convertToMinutes(form.durationValue, form.durationUnit)
-    } else if (form.startTime && form.endTime) {
-      const startDateTime = new Date(`${form.startDate}T${form.startTime}`)
-      const endDateTime = new Date(`${form.endDate}T${form.endTime}`)
-      body.duration_minutes = Math.floor((endDateTime - startDateTime) / 60000)
-    }
-  
-    emit('item-added', body)
+  async function submitForm() {
+  if (!isFormValid.value) return
+
+  const body = {
+    title: form.title,
+    description: form.description,
+    date: form.startDate,
+    time: form.startTime || null,
+    is_all_day: !form.startTime
   }
-  </script>  
+
+  if (form.durationValue && !(form.startDate && form.endDate)) {
+    body.duration_minutes = convertToMinutes(form.durationValue, form.durationUnit)
+  } else if (form.startTime && form.endTime) {
+    const startDateTime = new Date(`${form.startDate}T${form.startTime}`)
+    const endDateTime = new Date(`${form.endDate}T${form.endTime}`)
+    body.duration_minutes = Math.floor((endDateTime - startDateTime) / 60000)
+  }
+
+  await eventStore.addEvent(body)
+  await eventStore.loadEvents() // optional: if needed to reflect new state
+  resetForm()
+  emit('close')
+}
+  </script>
