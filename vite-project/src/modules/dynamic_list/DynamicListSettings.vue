@@ -87,9 +87,14 @@
   
   <script setup>
   import { ref, reactive, computed, onMounted } from 'vue'
+  import { useModuleSettingsStore } from '@/stores/moduleSettingsStore'
+  import { saveAndCloseSettings } from '@/utils/moduleSettingsHelpers'
   
   defineProps()
   const emit = defineEmits(['close', 'refresh'])
+  
+  const moduleId = 'dynamic_list'
+  const settingsStore = useModuleSettingsStore()
   
   const settings = reactive({
     title: 'My Dynamic List',
@@ -97,20 +102,26 @@
     tags: []
   })
   
-  const displayableLists = computed(() =>
-  availableLists.value.filter(
-    list => list?.name && !list.name.toLowerCase().includes('listless')
-  )
-)
-
+  // Merge in persisted settings
+  Object.assign(settings, settingsStore.getSettings(moduleId))
+  
   const availableLists = ref([])
   const tagInput = ref('')
   const tagSearch = ref('')
   const showTagPicker = ref(false)
   const allTags = ref([])
   
+  const displayableLists = computed(() =>
+    availableLists.value.filter(list =>
+      list?.name && !list.name.toLowerCase().includes('listless')
+    )
+  )
+  
   const filteredTagOptions = computed(() =>
-    allTags.value.filter(t => t.toLowerCase().includes(tagSearch.value.toLowerCase()) && !settings.tags.includes(t))
+    allTags.value.filter(t =>
+      t.toLowerCase().includes(tagSearch.value.toLowerCase()) &&
+      !settings.tags.includes(t)
+    )
   )
   
   function addTagFromInput() {
@@ -139,31 +150,18 @@
   }
   
   onMounted(async () => {
-  try {
-    // Load persisted settings
-    const res = await fetch('/api/modules/DynamicList/settings')
-    if (res.ok) {
-      const data = await res.json()
-      Object.assign(settings, data) // ← merge into reactive object
+    // Load available lists
+    const listRes = await fetch('/api/lists')
+    if (listRes.ok) {
+      availableLists.value = await listRes.json()
     }
-  } catch (err) {
-    console.warn('⚠️ Failed to load saved settings')
-  }
-
-  // Load available lists
-  const listRes = await fetch('/api/lists')
-  if (listRes.ok) {
-    availableLists.value = await listRes.json()
-  }
-
-  // Gather all tags from items
-  try {
-    const tagRes = await fetch('/api/lists')
-    if (tagRes.ok) {
-      const lists = await tagRes.json()
+  
+    // Gather all tags
+    try {
+      const lists = availableLists.value
       const tags = new Set()
       for (const list of lists) {
-        const itemsRes = await fetch(`/api/modules/DynamicList/lists/${list.id}/items`)
+        const itemsRes = await fetch(`/api/lists/${list.id}/items`)
         if (itemsRes.ok) {
           const items = await itemsRes.json()
           items.forEach(item => {
@@ -174,24 +172,13 @@
         }
       }
       allTags.value = [...tags]
+    } catch (err) {
+      console.warn('⚠️ Failed to gather tags:', err)
     }
-  } catch (err) {
-    console.warn('⚠️ Failed to gather tags:', err)
-  }
-})
-
+  })
   
-  async function saveAndClose() {
-  try {
-    await fetch('/api/modules/DynamicList/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings)
-    })
-    emit('refresh')
-    emit('close')
-  } catch (err) {
-    console.error('❌ Failed to save DynamicList settings:', err)
+  // Reuse centralized helper
+  function saveAndClose() {
+    saveAndCloseSettings(moduleId, settings, emit)
   }
-}
   </script>  

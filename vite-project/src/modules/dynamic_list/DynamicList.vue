@@ -44,7 +44,7 @@ const props = defineProps({
 })
 
 const itemDialogRef = ref(null)
-const moduleId = 'dynamiclist'
+const moduleId = 'dynamic_list'
 
 const listStore = useListStore()
 const settingsStore = useModuleSettingsStore()

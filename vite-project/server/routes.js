@@ -117,9 +117,10 @@ router.delete('/lists/items/:id', (req, res) => {
   res.json({ success: true })
 })
 
+// GET: Load settings
 router.get('/modules/:id/settings', (req, res) => {
   const moduleId = req.params.id
-  const settingsPath = path.resolve(`src/modules/${moduleId}/settings.json`)
+  const settingsPath = path.resolve(process.cwd(), 'src', 'modules', moduleId, 'settings.json')
 
   if (!fs.existsSync(settingsPath)) {
     return res.status(404).send('Settings file not found')
@@ -134,6 +135,22 @@ router.get('/modules/:id/settings', (req, res) => {
     res.status(500).json({ error: 'Failed to parse settings file' })
   }
 })
+
+// POST: Save settings
+router.post('/modules/:id/settings', (req, res) => {
+  const moduleId = req.params.id
+  const settingsPath = path.resolve(process.cwd(), 'src', 'modules', moduleId, 'settings.json')
+
+  try {
+    const data = JSON.stringify(req.body, null, 2)
+    fs.writeFileSync(settingsPath, data, 'utf-8')
+    res.json({ success: true })
+  } catch (err) {
+    console.error(`❌ Failed to save settings.json for module '${moduleId}':`, err)
+    res.status(500).json({ error: 'Failed to save settings' })
+  }
+})
+
 
 // console.log('✅ routes.js loaded')
 
