@@ -28,7 +28,7 @@ export default function createTaskPanelRouter() {
           console.error('❌ Failed to save settings:', err)
           res.status(500).json({ error: 'Failed to save settings' })
         }
-      })      
+      })
   
     return router
   }

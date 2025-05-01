@@ -1,4 +1,4 @@
 {
-  "limitEvents": false,
-  "maxEvents": 5
+  "limitEvents": true,
+  "maxEvents": 1
 }

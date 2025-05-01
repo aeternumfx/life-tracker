@@ -1,5 +1,5 @@
 import { createTables } from './schema.js'
-import db from './db.js'
+import db from '../db.js'
 import readline from 'readline'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -11,12 +11,12 @@ const rl = readline.createInterface({
 rl.question('Purge and re-seed database? This will delete everything! (y/N): ', (answer) => {
   if (answer.toLowerCase() === 'y') {
     db.exec(`
-      DROP TABLE IF EXISTS events;
-      DROP TABLE IF EXISTS tasks;
-      DROP TABLE IF EXISTS projects;
-      DROP TABLE IF EXISTS lists;
       DROP TABLE IF EXISTS list_items;
-    `)
+      DROP TABLE IF EXISTS lists;
+      DROP TABLE IF EXISTS tasks;
+      DROP TABLE IF EXISTS events;
+      DROP TABLE IF EXISTS projects;
+    `)    
 
     console.log('🧹 Old tables dropped.')
     createTables()
@@ -49,16 +49,33 @@ rl.question('Purge and re-seed database? This will delete everything! (y/N): ', 
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(task2Id, projectId, 'Finish layout system', 'Finalize grid snapping and save logic', '2025-04-28', 1)
 
-    // Keep old seed data if desired
+    // Sample List
+    const listId = uuidv4()
     db.prepare(`
-      INSERT INTO lists (name, type)
-      VALUES (?, ?)
-    `).run('To Buy', 'long_term')
+      INSERT INTO lists (id, name, type)
+      VALUES (?, ?, ?)
+    `).run(listId, 'Buylist: Tech', 'dynamiclist')
+
+    const listlessId = uuidv4()
+db.prepare(`
+  INSERT INTO lists (id, name, type)
+  VALUES (?, ?, ?)
+`).run(listlessId, 'Listless', 'dynamiclist')
+
+
+    // Sample List Items
+    const item1Id = uuidv4()
+    const item2Id = uuidv4()
 
     db.prepare(`
-      INSERT INTO list_items (list_id, name, target_price)
-      VALUES (?, ?, ?)
-    `).run(1, 'New Monitor', 300.00)
+      INSERT INTO list_items (id, list_id, text, priority, tags, completed)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(item1Id, listId, 'New Monitor', 2, 'work,home', 0)
+
+    db.prepare(`
+      INSERT INTO list_items (id, list_id, text, priority, tags, completed)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(item2Id, listId, 'HDMI Switch', 1, 'home', 1)
 
     console.log('✨ Sample data inserted.')
   } else {

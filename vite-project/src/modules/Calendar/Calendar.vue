@@ -14,7 +14,7 @@
       <FullCalendar :options="calendarOptions" ref="calendarRef" />
 
       <!-- Add Dialog -->
-      <AddItemDialog ref="dialog" @item-added="emit('event-added')" />
+      <CalendarAddItemDialog ref="dialog" @item-added="emit('event-added')" />
     </div>
   </div>
 </template>
@@ -23,7 +23,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
-import AddItemDialog from './AddItemDialog.vue'
+import CalendarAddItemDialog from './CalendarAddItemDialog.vue'
 
 const props = defineProps({
   events: Array,

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-screen overflow-hidden">
     <!-- Top Navbar -->
-    <Navbar :resizeMode="resizeMode" @toggle-edit-mode="enableEditMode" />
+    <!-- <Navbar :resizeMode="resizeMode" @toggle-edit-mode="enableEditMode" /> -->
     <EditBar
   v-if="isEditMode"
   @show-module-browser="showModuleBrowser = true"
@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, markRaw } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, markRaw } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import EditBar from '../components/EditBar.vue'
 import Container from '../components/Container.vue'
@@ -72,6 +72,13 @@ import calendarModule from '../modules/Calendar'
 import ThemeManager from '../components/ThemeManager.vue'
 import TaskPanelSettings from '../modules/TaskPanel/TaskPanelSettings.vue'
 
+onMounted(() => {
+  window.addEventListener('toggle-edit-mode', enableEditMode)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('toggle-edit-mode', enableEditMode)
+})
 
 const openSettingsFor = ref(null)
 const activeSettingsComponent = ref(null)

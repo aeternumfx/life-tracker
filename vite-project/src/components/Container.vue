@@ -88,8 +88,10 @@ const emit = defineEmits(['update:layout', 'delete-module', 'open-settings'])
 const settingsHandlers = {}
 
 function registerSettingsHandler(id, callback) {
+  // console.log('📬 Registering handler for', id)
   settingsHandlers[id] = callback
 }
+
 
 function onLayoutUpdated(newLayout) {
   emit('update:layout', newLayout)
@@ -102,6 +104,7 @@ function toggleDropdown(id) {
 }
 
 function emitToComponent(id, eventName) {
+  // console.log('⚙️ Triggering', eventName, 'for', id)
   if (eventName === 'settings-clicked' && settingsHandlers[id]) {
     const panelComponent = settingsHandlers[id]()
     if (panelComponent && props.onGlobalSettingsClicked) {

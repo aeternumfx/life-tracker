@@ -1,4 +1,4 @@
-import db from './db.js'
+import db from '../db.js'
 
 export function createTables() {
   db.exec(`
@@ -47,22 +47,27 @@ export function createTables() {
     );
 
     CREATE TABLE IF NOT EXISTS lists (
-      id INTEGER PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      type TEXT,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      project_id TEXT,
+      type TEXT DEFAULT 'general',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      deleted_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS list_items (
-      id INTEGER PRIMARY KEY,
-      list_id INTEGER,
-      name TEXT NOT NULL,
-      notes TEXT,
-      quantity INTEGER,
-      target_price REAL,
-      is_done BOOLEAN DEFAULT 0,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+  id TEXT PRIMARY KEY,
+  list_id TEXT NOT NULL,
+  text TEXT NOT NULL,
+  completed INTEGER DEFAULT 0,
+  priority INTEGER DEFAULT 0,
+  tags TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT,
+  deleted_at TEXT,
+  FOREIGN KEY (list_id) REFERENCES lists(id)
+);
   `)
 
   console.log('✅ Tables created.')

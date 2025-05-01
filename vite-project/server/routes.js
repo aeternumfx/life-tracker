@@ -3,12 +3,19 @@ import express from 'express'
 import * as projectApi from '../db/api/projects.js'
 import * as eventApi from '../db/api/events.js'
 import * as taskApi from '../db/api/tasks.js'
+import * as listApi from '../db/api/lists.js'
 
 const router = express.Router()
 
-// Projects
 router.get('/projects', (req, res) => {
-  res.json(projectApi.getProjects())
+  try {
+    // console.log('📥 /projects hit')
+    const projects = projectApi.getProjects()
+    res.json(projects)
+  } catch (err) {
+    console.error('❌ Error in /projects route:', err)
+    res.status(500).json({ error: 'Failed to load projects' })
+  }
 })
 
 router.post('/projects', (req, res) => {
@@ -63,5 +70,53 @@ router.delete('/tasks/:id', (req, res) => {
   taskApi.softDeleteTask(req.params.id)
   res.json({ success: true })
 })
+
+router.get('/lists', (req, res) => {
+  res.json(listApi.getLists())
+})
+
+router.post('/lists', (req, res) => {
+  const id = listApi.addList(req.body)
+  res.json({ success: true, id })
+})
+
+router.post('/lists/:id/rename', (req, res) => {
+  listApi.renameList(req.params.id, req.body.name)
+  res.json({ success: true })
+})
+
+router.delete('/lists/:id', (req, res) => {
+  listApi.softDeleteList(req.params.id)
+  res.json({ success: true })
+})
+
+// List Items
+router.get('/lists/:list_id/items', (req, res) => {
+  res.json(listApi.getListItems(req.params.list_id))
+})
+
+router.post('/lists/:list_id/items', (req, res) => {
+  const id = listApi.addListItem({ ...req.body, list_id: req.params.list_id })
+  res.json({ success: true, id })
+})
+
+router.patch('/lists/items/:id/status', (req, res) => {
+  listApi.updateItemStatus(req.params.id, req.body.completed)
+  res.json({ success: true })
+})
+
+router.patch('/lists/items/:id/order', (req, res) => {
+  listApi.updateItemOrder(req.params.id, req.body.sort_order)
+  res.json({ success: true })
+})
+
+router.delete('/lists/items/:id', (req, res) => {
+  listApi.softDeleteItem(req.params.id)
+  res.json({ success: true })
+})
+
+
+console.log('✅ routes.js loaded')
+
 
 export default router
