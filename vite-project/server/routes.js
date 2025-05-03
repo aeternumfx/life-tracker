@@ -6,6 +6,7 @@ import * as projectApi from '../db/api/projects.js'
 import * as eventApi from '../db/api/events.js'
 import * as taskApi from '../db/api/tasks.js'
 import * as listApi from '../db/api/lists.js'
+import * as tags from '../db/api/tags.js'
 
 const router = express.Router()
 
@@ -115,6 +116,25 @@ router.patch('/lists/items/:id/order', (req, res) => {
 router.delete('/lists/items/:id', (req, res) => {
   listApi.softDeleteItem(req.params.id)
   res.json({ success: true })
+})
+
+router.get('/tags', (req, res) => {
+  try {
+    res.json(tags.getAllTags())
+  } catch (err) {
+    console.error('Error in /api/tags:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.get('/tags/:label/entities', (req, res) => {
+  try {
+    const data = tags.getEntitiesByTag(req.params.label)
+    res.json(data)
+  } catch (err) {
+    console.error('❌ Error in /tags/:label/entities:', err)
+    res.status(500).json({ error: 'Failed to fetch tagged entities' })
+  }
 })
 
 // GET: Load settings

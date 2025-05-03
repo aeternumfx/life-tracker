@@ -25,6 +25,43 @@
           <button type="button" @click="form.description = ''" class="text-[color:var(--color-warning)]">🗑</button>
         </div>
       </div>
+
+      <!-- Tags -->
+<div>
+  <label class="block text-sm mb-1">Tags</label>
+  <div class="flex flex-wrap gap-2">
+    <span
+      v-for="tag in form.tags"
+      :key="tag"
+      class="bg-[color:var(--color-chipBackground)] text-[color:var(--color-chipText)] px-2 py-1 rounded text-sm flex items-center gap-1"
+    >
+      {{ tag }}
+      <button @click="form.tags = form.tags.filter(t => t !== tag)">✖</button>
+    </span>
+  </div>
+
+  <div class="flex gap-2 mt-2">
+    <input
+      v-model="tagInput"
+      @keydown.enter.prevent="handleTagInputKey"
+      @keydown.prevent="handleTagInputKey"
+      placeholder="Type and press ',' to add"
+      class="flex-1 p-2 border rounded bg-[color:var(--color-inputBackground)] text-[color:var(--color-inputText)] border-[color:var(--color-inputBorder)]"
+    />
+    <button @click="showTagDialog = true" class="px-2 py-1 rounded bg-[color:var(--color-buttonBackground)] text-white text-sm">
+      Pick Tags
+    </button>
+  </div>
+</div>
+
+<TagSelectorDialog
+  v-if="showTagDialog"
+  :available-tags="tagStore.tags.map(t => t.label)"
+  :selected-tags="form.tags"
+  @update:tags="(newTags) => form.tags = newTags"
+  @close="showTagDialog = false"
+/>
+
   
       <!-- Start and End -->
       <div class="space-y-4">
@@ -138,40 +175,72 @@
       </div>
   
       <!-- Submit -->
-      <div class="flex justify-end">
-        <button
-          type="submit"
-          :disabled="!isFormValid"
-          class="px-4 py-1 rounded bg-[color:var(--color-buttonBackground)] text-[color:var(--color-buttonText)] disabled:bg-gray-500 disabled:text-gray-200"
-        >
-          Save
-        </button>
-      </div>
+<div class="flex justify-end gap-2">
+  <button
+    type="button"
+    @click="emit('close')"
+    class="px-4 py-1 rounded border border-[color:var(--color-buttonBackground)] text-[color:var(--color-buttonBackground)] hover:bg-[color:var(--color-buttonBackground)] hover:text-white"
+  >
+    Cancel
+  </button>
+
+  <button
+    type="submit"
+    :disabled="!isFormValid"
+    class="px-4 py-1 rounded bg-[color:var(--color-buttonBackground)] text-[color:var(--color-buttonText)] disabled:bg-gray-500 disabled:text-gray-200"
+  >
+    Save
+  </button>
+</div>
+
     </form>
   </template>
   
   <script setup>
-  import { reactive, computed, watch } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
   import { useEventStore } from '@/stores/eventStore'
+  import { useTagStore } from '@/stores/tagStore'
+  import TagSelectorDialog from '@/components/dialogs/TagSelectorDialog.vue'
   
   const emit = defineEmits(['item-added', 'close'])
   const eventStore = useEventStore()
+
+  const tagStore = useTagStore()
+  tagStore.loadTags()
+
+  const tagInput = ref('')
+  const showTagDialog = ref(false)
+
+  function handleTagInputKey(e) {
+  if (e.key === ',' && tagInput.value.trim()) {
+    const value = tagInput.value.trim().replace(/,$/, '')
+    if (value && !form.tags.includes(value)) form.tags.push(value)
+    tagInput.value = ''
+  }
+}
+
+function toggleTag(tag) {
+  const i = form.tags.indexOf(tag)
+  i === -1 ? form.tags.push(tag) : form.tags.splice(i, 1)
+}
   
   const form = reactive({
-    title: '',
-    description: '',
-    startDate: '',
-    startTime: '00:00',
-    endDate: '',
-    endTime: '23:59',
-    durationValue: null,
-    durationUnit: '',
-    durationFrom: '',
-    _dirtyStartDate: false,
-    _dirtyEndDate: false,
-    _dirtyStartTime: false,
-    _dirtyEndTime: false
-  })
+  title: '',
+  description: '',
+  startDate: '',
+  startTime: '00:00',
+  endDate: '',
+  endTime: '23:59',
+  durationValue: null,
+  durationUnit: '',
+  durationFrom: '',
+  tags: [],
+  _dirtyStartDate: false,
+  _dirtyEndDate: false,
+  _dirtyStartTime: false,
+  _dirtyEndTime: false
+})
+
 
   function resetForm() {
   Object.assign(form, {
@@ -255,12 +324,14 @@
   if (!isFormValid.value) return
 
   const body = {
-    title: form.title,
-    description: form.description,
-    date: form.startDate,
-    time: form.startTime || null,
-    is_all_day: !form.startTime
-  }
+  title: form.title,
+  description: form.description,
+  date: form.startDate,
+  time: form.startTime || null,
+  is_all_day: !form.startTime,
+  tags: form.tags
+}
+
 
   if (form.durationValue && !(form.startDate && form.endDate)) {
     body.duration_minutes = convertToMinutes(form.durationValue, form.durationUnit)
