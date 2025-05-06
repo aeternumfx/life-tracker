@@ -1,0 +1,96 @@
+.
+├── .gitignore
+├── project-structure.txt
+├── README.md
+└── vite-project
+    ├── config.js
+    ├── data
+    │   ├── defaultlayout.json
+    │   └── layout.json
+    ├── db
+    │   ├── api
+    │   │   ├── events.js
+    │   │   ├── lists.js
+    │   │   ├── projects.js
+    │   │   └── tasks.js
+    │   ├── api.js
+    │   ├── db.js
+    │   ├── life-tracker.db
+    │   └── schema
+    │       ├── schema.js
+    │       └── seed.js
+    ├── .env
+    ├── .gitignore
+    ├── index.html
+    ├── package.json
+    ├── package-lock.json
+    ├── postcss.config.js
+    ├── public
+    │   └── vite.svg
+    ├── README.md
+    ├── server
+    │   ├── index.js
+    │   ├── moduleRoutes.js
+    │   ├── routes.js
+    │   └── setup.js
+    ├── src
+    │   ├── App.vue
+    │   ├── assets
+    │   ├── components
+    │   │   ├── AddProjectDialog.vue
+    │   │   ├── Container.vue
+    │   │   ├── dialogs
+    │   │   │   ├── AddEventDialog.vue
+    │   │   │   ├── AddListDialog.vue
+    │   │   │   ├── AddListItemDialog.vue
+    │   │   │   └── AddTaskDialog.vue
+    │   │   ├── EditBar.vue
+    │   │   ├── ModuleBrowser.vue
+    │   │   ├── Navbar.vue
+    │   │   └── ThemeManager.vue
+    │   ├── layouts
+    │   │   └── DefaultLayout.vue
+    │   ├── main.js
+    │   ├── modules
+    │   │   ├── _allModules.js
+    │   │   ├── Calendar
+    │   │   │   ├── CalendarAddItemDialog.vue
+    │   │   │   ├── Calendar.vue
+    │   │   │   └── index.js
+    │   │   ├── Donation
+    │   │   │   ├── Donation.vue
+    │   │   │   └── index.js
+    │   │   ├── DynamicList
+    │   │   │   ├── api.js
+    │   │   │   ├── DynamicListSettings.vue
+    │   │   │   ├── DynamicList.vue
+    │   │   │   ├── index.js
+    │   │   │   └── settings.json
+    │   │   ├── Streak
+    │   │   │   ├── index.js
+    │   │   │   └── Streak.vue
+    │   │   └── TaskPanel
+    │   │       ├── api.js
+    │   │       ├── index.js
+    │   │       ├── settings.json
+    │   │       ├── TaskPanelSettings.vue
+    │   │       └── TaskPanel.vue
+    │   ├── pages
+    │   │   ├── Dashboard.vue
+    │   │   └── ProjectsPage.vue
+    │   ├── router.js
+    │   ├── style.css
+    │   ├── themes
+    │   │   ├── dark-mode
+    │   │   │   └── colors.json
+    │   │   └── light-mode
+    │   │       └── colors.json
+    │   └── utils
+    │       └── themeLoader.js
+    ├── tailwind.config.js
+    ├── TODO.txt
+    ├── vite.config.js
+    └── .vscode
+        └── extensions.json
+
+25 directories, 69 files
