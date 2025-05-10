@@ -12,6 +12,7 @@ import * as moduleSettings from '../db/api/module_settings.js'
 import * as listItems from '../db/api/list_items.js'
 import db from '../db/db.js'
 
+
 const router = express.Router()
 
 router.get('/projects', (req, res) => {
@@ -48,6 +49,16 @@ router.post('/events', (req, res) => {
 router.delete('/events/:id', (req, res) => {
   eventApi.softDeleteEvent(req.params.id)
   res.json({ success: true })
+})
+
+router.put('/events/:id', (req, res) => {
+  try {
+    eventApi.updateEvent(req.params.id, req.body)
+    res.json({ success: true })
+  } catch (err) {
+    console.error('❌ Error updating event:', err)
+    res.status(500).json({ error: 'Failed to update event' })
+  }
 })
 
 // Tasks
@@ -221,29 +232,15 @@ router.post('/modules/:id/settings', (req, res) => {
 })
 
 
-router.post('/import', express.json({ limit: '10mb' }), (req, res) => {
-  const data = req.body
-  console.log('🔁 Received import request')
-  console.log('📦 Body:', JSON.stringify(req.body, null, 2))
-
-  try {
-    // You can write dedicated "replaceAll..." functions for each table if needed
-    // For now, drop + recreate the db manually before using this endpoint
-    fs.writeFileSync('data/layout.json', JSON.stringify(data.layout, null, 2))
-
-    // Save module settings if available
-    if (Array.isArray(data.moduleSettings)) {
-      data.moduleSettings.forEach(s => moduleSettings.saveSetting(s.moduleId, s.settings))
-    }
-
-    // You'd need to import entities like projects, tasks, etc. using upsert logic
-
-    res.json({ success: true })
-  } catch (err) {
-    console.error('❌ Import failed:', err)
-    res.status(500).json({ error: 'Failed to import data' })
-  }
-})
+let importHandler
+try {
+  importHandler = (await import('../db/api/import.js')).default
+  console.log('[DEBUG] ✅ Import handler loaded')
+} catch (err) {
+  console.error('❌ Failed to load import handler:', err)
+  process.exit(1) // Prevent boot if critical route is broken
+}
+router.post('/import', express.json({ limit: '10mb' }), importHandler)
 
 router.post('/reset', (req, res) => {
   try {
@@ -310,7 +307,9 @@ router.post('/generate-dummy', (req, res) => {
   })
 })
 
-
+router.get('/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() })
+})
 
 // console.log('✅ routes.js loaded')
 

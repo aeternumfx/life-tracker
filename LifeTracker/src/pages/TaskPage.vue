@@ -91,7 +91,7 @@
   
         <!-- Calendar View -->
 <div v-else>
-  <Calendar v-if="calendarTasks.length" :events="calendarTasks" />
+  <BaseCalendar v-if="calendarTasks.length" :events="calendarTasks" />
 </div>
 
 
@@ -105,7 +105,7 @@
   import { ref, computed, onMounted, watchEffect } from 'vue'
   import { useTaskStore } from '@/stores/taskStore'
   import { useTagStore } from '@/stores/tagStore'
-  import Calendar from '@/modules/calendar/Calendar.vue'
+  import BaseCalendar from '@/components/BaseCalendar.vue'
   import AddTaskDialog from '@/components/dialogs/AddTaskDialog.vue'
   
   const taskStore = useTaskStore()

@@ -13,6 +13,7 @@ import { useSystemTagStore } from './systemTagStore'
 
 export const useImportExportStore = defineStore('importExport', () => {
   async function importData(json) {
+    console.log('[IMPORT] About to fetch /api/import')
     console.log('[IMPORT] Received JSON:', json)
     console.log('[IMPORT] DB:', json.db)
     const res = await fetch('/api/import', {
@@ -21,7 +22,11 @@ export const useImportExportStore = defineStore('importExport', () => {
       body: JSON.stringify(json),
     })
 
-    if (!res.ok) throw new Error('Failed to import data')
+    if (!res.ok) {
+      const text = await res.text()
+      console.error('❌ Import failed. Status:', res.status, 'Response:', text)
+      throw new Error('Failed to import data')
+    }    
 
     const { layout, moduleSettings, db } = json
 

@@ -33,3 +33,33 @@ export function getEvents() {
       UPDATE events SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?
     `).run(id)
   }
+
+  export function updateEvent(id, data) {
+    db.prepare(`
+      UPDATE events
+      SET
+        title = @title,
+        description = @description,
+        date = @date,
+        time = @time,
+        duration_minutes = @duration_minutes,
+        lead_minutes = @lead_minutes,
+        lag_minutes = @lag_minutes,
+        is_all_day = @is_all_day,
+        recurrence_rule = @recurrence_rule,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = @id
+    `).run({
+      id,
+      title: data.title,
+      description: data.description,
+      date: data.date,
+      time: data.time,
+      duration_minutes: data.duration_minutes,
+      lead_minutes: data.lead_minutes || null,
+      lag_minutes: data.lag_minutes || null,
+      is_all_day: data.is_all_day ? 1 : 0,
+      recurrence_rule: data.recurrence_rule || null
+    })
+  }
+  

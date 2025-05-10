@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useModuleSettingsStore } from '@/stores/moduleSettingsStore'
 
 export const useListStore = defineStore('lists', {
   state: () => ({
@@ -46,6 +47,16 @@ export const useListStore = defineStore('lists', {
       await fetch(`/api/lists/${id}`, { method: 'DELETE' })
       this.lists = this.lists.filter(l => l.id !== id)
       delete this.itemsByListId[id]
+    
+      const settingsStore = useModuleSettingsStore()
+      const settings = settingsStore.getSettings('dynamic_list')
+      if (settings?.selectedLists) {
+        settingsStore.setSetting(
+          'dynamic_list',
+          'selectedLists',
+          settings.selectedLists.filter(lid => lid !== id)
+        )
+      }
     },
 
     async addItem({ list_id, text, priority = 0, tags = '' }) {

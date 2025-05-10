@@ -1,6 +1,6 @@
 <template>
   <nav class="flex justify-between items-center px-4 py-2 bg-gray-800 text-white">
-    <div class="text-lg font-bold">Life Tracker</div>
+    <div class="text-lg font-bold">🧠 Life Tracker</div>
 
     <div class="flex space-x-4">
       <RouterLink to="/" class="hover:underline">Dashboard</RouterLink>

@@ -17,9 +17,14 @@ app.use(express.json())
 
 // 📦 Mount unified API router
 app.use('/api', apiRouter)
+console.log('[DEBUG] ✅ API router mounted at /api')
 import moduleRoutes from './moduleRoutes.js'
 
+
 app.use('/api/modules', moduleRoutes)
+
+console.log('[DEBUG] CWD:', process.cwd())
+console.log('[DEBUG] __filename:', import.meta.url)
 
 // 🔧 Path setup for layout
 const __filename = fileURLToPath(import.meta.url)

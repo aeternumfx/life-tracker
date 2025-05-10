@@ -50,12 +50,26 @@ const listStore = useListStore()
 const settingsStore = useModuleSettingsStore()
 const settings = computed(() => settingsStore.getSettings(moduleId))
 
-onMounted(() => {
+onMounted(async () => {
   settingsStore.loadSettings(moduleId)
+
+  // Load all available lists first
+  await fetchAllLists()
+
+  // Prune selectedLists of deleted ones
+  const validListIds = new Set(listStore.lists.map(l => l.id))
+  const selected = settings.value.selectedLists || []
+  const validSelected = selected.filter(id => validListIds.has(id))
+
+  if (selected.length !== validSelected.length) {
+    console.warn('⚠️ Pruning deleted list IDs from settings:', selected.filter(id => !validListIds.has(id)))
+    settingsStore.setSetting(moduleId, 'selectedLists', validSelected)
+    await settingsStore.saveSettings(moduleId)
+  }
+
   if (props.onSettingsClicked) {
     props.onSettingsClicked(() => markRaw(DynamicListSettings))
   }
-  fetchAllLists()
 })
 
 watch(() => props.refreshKey, () => {
@@ -65,19 +79,40 @@ watch(() => props.refreshKey, () => {
 
 async function fetchAllLists() {
   await listStore.loadLists()
-  await Promise.all(listStore.lists.map(l => listStore.loadItems(l.id)))
+  await Promise.all(
+  listStore.lists
+    .filter(l => l.id) // ensure valid IDs
+    .map(l => listStore.loadItems(l.id))
+)
+
+  const validLists = listStore.lists.filter(l => l.id)
+  await Promise.all(validLists.map(l => listStore.loadItems(l.id)))
+
+  // Optional cleanup log
+  const missing = settings.value.selectedLists?.filter(id => !validLists.some(l => l.id === id))
+  if (missing?.length) {
+    console.warn('⚠️ DynamicList: Some selectedLists no longer exist:', missing)
+  }
 }
 
 const filteredItems = computed(() => {
   let all = Object.values(listStore.itemsByListId).flat()
 
+  const validListIds = listStore.lists.map(l => l.id)
+
   if (settings.value.selectedLists?.length > 0) {
-    all = all.filter(i => settings.value.selectedLists.includes(i.list_id))
+    all = all.filter(
+      i =>
+        settings.value.selectedLists.includes(i.list_id) &&
+        validListIds.includes(i.list_id)
+    )
   }
 
   if (settings.value.tags?.length > 0) {
     all = all.filter(i =>
-      settings.value.tags.some(tag => i.tags?.split(',').map(t => t.trim()).includes(tag))
+      settings.value.tags.some(tag =>
+        i.tags?.split(',').map(t => t.trim()).includes(tag)
+      )
     )
   }
 

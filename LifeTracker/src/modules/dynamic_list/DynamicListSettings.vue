@@ -179,6 +179,6 @@
   
   // Reuse centralized helper
   function saveAndClose() {
-    saveAndCloseSettings(moduleId, settings, emit)
+    saveAndCloseSettings(settingsStore, moduleId, settings, emit)
   }
   </script>  

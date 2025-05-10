@@ -86,7 +86,7 @@
   
       <!-- Main: Calendar View -->
       <div class="flex-1 overflow-y-auto p-4 bg-[--color-surfaceAlt]">
-        <Calendar :events="syncCalendar ? filteredEvents.value : allEvents.value" @delete="handleDeleteEvent" />
+        <BaseCalendar :events="syncCalendar ? filteredEvents.value : allEvents.value" @delete="handleDeleteEvent" />
       </div>
   
       <!-- Add Event Dialog -->
@@ -98,7 +98,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { useEventStore } from '@/stores/eventStore'
   import { useTagStore } from '@/stores/tagStore'
-  import Calendar from '@/modules/calendar/Calendar.vue'
+  import BaseCalendar from '@/components/BaseCalendar.vue'
   import AddEventDialog from '@/components/dialogs/AddEventDialog.vue'
   
   const eventStore = useEventStore()

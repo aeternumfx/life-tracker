@@ -48,6 +48,11 @@ settings[id] = data
     settings[id] = { ...newSettings }
   }
 
+  function setSetting(id, key, value) {
+    settings[id] = { ...settings[id], [key]: value }
+  }
+  
+
   function hydrateSettings(data) {
     settings.value = data || {}
   }  
@@ -56,6 +61,7 @@ settings[id] = data
     settings,
     getSettings,
     setSettings,
+    setSetting,
     loadSettings,
     preloadSettings,
     saveSettings,

@@ -1,0 +1,8 @@
+{
+  "showMonthView": true,
+  "showWeekView": true,
+  "showDayView": true,
+  "showYearView": true,
+  "defaultViewMode": "month",
+  "rememberLastView": true
+}

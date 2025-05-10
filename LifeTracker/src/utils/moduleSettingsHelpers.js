@@ -4,9 +4,9 @@ export function hydrateSettings(store, moduleId, defaults) {
     return Object.assign({}, defaults, existing)
   }
   
-  export async function saveAndCloseSettings(store, moduleId, settings, emit) {
+  export async function saveAndCloseSettings(store, moduleId, newSettings, emit) {
     try {
-      store.setSettings(moduleId, settings)
+      store.setSettings(moduleId, newSettings)
       await store.saveSettings(moduleId)
       emit('refresh')
       emit('close')

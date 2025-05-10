@@ -9,11 +9,13 @@
     "preview": "vite preview",
     "dev-frontend": "vite",
     "dev-backend": "node server/index.js",
-    "seed": "node db/schema/seed.js"
+    "seed": "node db/schema/seed.js",
+    "initDb": "node db/schema/initDb.js"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.17",
     "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
     "@fullcalendar/vue3": "^6.1.17",
     "better-sqlite3": "^11.9.1",
     "cors": "^2.8.5",

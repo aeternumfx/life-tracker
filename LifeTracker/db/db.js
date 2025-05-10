@@ -1,11 +1,12 @@
+// server/db.js
 import Database from 'better-sqlite3'
+import config from '../config.js'
 import path from 'path'
-import { fileURLToPath } from 'url'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const dbPath = path.join(__dirname, 'life-tracker.db')
-const db = new Database(dbPath)
+console.log('[DB] Using database at:', config.DB_PATH)
+console.log('[DEBUG] Resolved DB path:', path.resolve(config.DB_PATH))
 
+const db = new Database(config.DB_PATH)
 db.pragma('foreign_keys = ON')
 
 export default db
