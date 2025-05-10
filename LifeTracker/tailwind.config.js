@@ -1,7 +1,7 @@
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{vue,js,ts}",
+    './frontend/**/*.{vue,js,ts}',
+    './custom/user-modules/**/*.{vue,js,ts}'
   ],
   theme: {
     extend: {},

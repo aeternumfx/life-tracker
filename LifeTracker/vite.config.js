@@ -40,7 +40,10 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './frontend/app'),
+      '@backend': path.resolve(__dirname, './backend'),
+      '@modules': path.resolve(__dirname, '.custom/user-modules'), // change to usermodules later
+      '@themes': path.resolve(__dirname, './custom/themes'),       // if you move it soon
     }
   },
   server: {

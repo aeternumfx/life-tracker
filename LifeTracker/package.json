@@ -8,9 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "dev-frontend": "vite",
-    "dev-backend": "node server/index.js",
-    "seed": "node db/schema/seed.js",
-    "initDb": "node db/schema/initDb.js"
+    "dev-backend": "node backend/server.js",
+    "seed": "node backend/scripts/seed.js",
+    "initDb": "node backend/scripts/initDb.js"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.17",
