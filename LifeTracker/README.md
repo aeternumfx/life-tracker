@@ -1,5 +1,70 @@
-# Vue 3 + Vite
+# Life Tracker (Pre-release v0.1.0)
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Life Tracker is a modular, customizable productivity dashboard built with **Vue 3**, **Express**, and **SQLite**. It supports task, event, and list management, all from a drag-and-drop interface.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 🚀 Features
+
+- ✅ Modular layout (via vue-grid-layout)
+- 🗓 Unified Calendar with day/week/month views
+- 📋 Dynamic Lists with tag filtering and priorities
+- 💡 Project, Task, Event & Goal management
+- 🎨 Theme Manager for CSS-variable-based color schemes
+- 🔄 Export / Import with conflict resolution
+- 🗃 Soft deletion support for all entities
+- 📊 Built-in stats dashboard
+
+## 🧩 Structure
+
+```
+bundle/
+├── backend/            # Express server and SQLite DB
+├── frontend/           # Vite-built frontend
+├── custom/             # Editable user modules and themes
+├── README.md
+└── package.json
+```
+
+## ⚙️ Setup
+
+### Option A: Run From Release ZIP
+```bash
+cd backend
+npm install
+node server.js
+```
+Then open the `frontend/index.html` in a browser or serve it with a static server.
+
+### Option B: Run From Source
+```bash
+npm install
+npm run dev
+```
+
+## 🧪 Pre-release Notes
+
+This is an **early alpha** version. You **can**:
+- Build modules and themes in `custom/`
+- Export your data and re-import it
+- Extend module logic with minimal wiring
+
+But you **shouldn't yet** expect:
+- Full schema migrations between versions
+- Role-based permissions or accounts
+- Offline-first support (planned)
+
+## 🛠 Developer Info
+
+Built with:
+- Vue 3 + Vite
+- Pinia
+- TailwindCSS
+- Express
+- better-sqlite3
+
+## 📄 License
+
+MIT (TBC)
+
+## 📣 Feedback & Contributions
+
+Open an issue or pull request on GitHub!

@@ -22,9 +22,13 @@ export const useEventStore = defineStore('events', {
       this.events = events
     },    
     async softDeleteEvent(id) {
-      await fetch(`/api/events/${id}`, { method: 'DELETE' })
-      this.events = this.events.filter(e => e.id !== id)
-    },
+  await fetch(`/api/events/${id}/soft-delete`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deleted: true })
+  })
+  this.events = this.events.filter(e => e.id !== id)
+},
     async updateEvent(event) {
       await fetch(`/api/events/${event.id}`, {
         method: 'PUT',

@@ -67,3 +67,12 @@ app.get('/api/default-layout', async (req, res) => {
 app.listen(port, () => {
   console.log(`🧠 Life Tracker backend listening at http://localhost:${port}`)
 })
+
+// 🖼 Serve frontend in production
+const frontendPath = path.resolve(__dirname, '../frontend/dist')
+app.use(express.static(frontendPath))
+
+// Serve frontend index.html for all routes *except* those starting with /api
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'))
+})

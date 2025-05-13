@@ -4,6 +4,15 @@
       <form @submit.prevent="submitForm" class="space-y-4">
   
         <div class="text-lg font-bold">Add List Item</div>
+
+        <!-- Type selector -->
+<div>
+  <label class="block text-sm mb-1">Type</label>
+  <select v-model="form.type" class="w-full p-2 rounded border bg-[color:var(--color-inputBackground)] text-[color:var(--color-inputText)] border-[color:var(--color-inputBorder)]">
+    <option value="item">List Item</option>
+    <option value="task">Task</option>
+  </select>
+</div>
         
   
         <!-- Name -->
@@ -103,10 +112,13 @@
   const dialogRef = ref(null)
   
   const form = reactive({
-    text: '',
-    priority: 0,
-    tags: []
-  })
+  type: 'item', // ✅ add this default
+  text: '',
+  priority: 0,
+  tags: [],
+  listId: null
+})
+
 
   onMounted(async () => {
   const res = await fetch('/api/lists')
@@ -114,9 +126,9 @@
     availableLists.value = await res.json()
     // Default selection to 'listless' if nothing is chosen
     if (!form.listId && availableLists.value.length > 0) {
-      const listless = availableLists.value.find(l => l.name.toLowerCase().includes('listless'))
-      form.listId = listless?.id || availableLists.value[0].id
-    }
+  const listless = availableLists.value.find(l => l.name.toLowerCase().includes('listless'))
+  form.listId = listless?.id || availableLists.value[0].id
+}
   } else {
     console.warn('⚠️ Failed to load available lists')
   }
@@ -188,10 +200,15 @@
     showTagPicker.value = false
   }
   
-  function open() {
-    resetForm()
-    dialogRef.value?.showModal()
-  }
+function open() {
+  resetForm()
+  // Set listId again here to ensure it’s populated before submit
+  const listless = availableLists.value.find(l => l.name.toLowerCase().includes('listless'))
+  form.listId = listless?.id || availableLists.value[0]?.id || null
+
+  console.log('[open] Setting listId to:', form.listId)
+  dialogRef.value?.showModal()
+}
   
   function close() {
     dialogRef.value?.close()
@@ -200,15 +217,24 @@
   defineExpose({ open })
   
   async function submitForm() {
-    if (!form.text.trim()) return
-  
-    emit('item-added', {
-      text: form.text.trim(),
-      priority: form.priority,
-      tags: form.tags.join(','),
-      listId: form.listId
-    })
-  
-    close()
-  }
+  if (!form.text.trim()) return;
+  if (!form.listId) {
+  console.warn('[submitForm] Missing listId. Abort.')
+  return
+}
+
+  const payload = {
+  type: form.type, // "item" or "task"
+  text: form.text.trim(),
+  priority: form.priority,
+  tags: form.tags.join(','),
+  list_id: form.listId,
+};
+
+  console.log('[AddItemDialog] Submitting:', payload); // ✅ Add this
+  emit('item-added', payload);
+
+  close();
+}
+
   </script>

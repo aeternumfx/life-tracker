@@ -17,6 +17,8 @@ import * as listItems from '../db/api/list_items.js'
 import db from '../db/db.js'
 import { getStats } from '../db/api/stats.js'
 import { generateExportData } from '../db/api/export.js'
+import * as phaseApi from '../db/api/phases.js'
+
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -27,31 +29,46 @@ const settingsPath = path.join(dataDir, 'moduleSettings.json')
 const router = express.Router()
 
 router.post('/reset', (req, res) => {
-    try {
-      const tables = [
-        'list_items', 'lists', 'tasks', 'events', 'projects',
-        'goals', 'tag_links', 'tags', 'system_tags',
-        'system_tag_links', 'entity_links', 'activity_log'
-      ]
-  
-      for (const table of tables) {
-        db.prepare(`DELETE FROM ${table}`).run()
-      }
-  
+  try {
+    db.exec('PRAGMA foreign_keys = OFF')
 
-       // Ensure data directory exists
-       fs.mkdirSync(dataDir, { recursive: true })
+    const tables = [
+      'list_contents',        // ✅ must come before lists, list_items, tasks
+      'list_items',
+      'tasks',
+      'events',
+      'phases',
+      'lists',
+      'projects',
+      'goals',
+      'tag_links',
+      'tags',
+      'system_tag_links',
+      'system_tags',
+      'entity_links',
+      'activity_log'
+    ]
 
-       // Reset files
-       fs.writeFileSync(layoutPath, '[]')
-       fs.writeFileSync(settingsPath, '{}')
-  
-      res.json({ success: true })
-    } catch (err) {
-      console.error('❌ Reset failed:', err)
-      res.status(500).json({ error: 'Failed to reset database' })
+    for (const table of tables) {
+      db.prepare(`DELETE FROM ${table}`).run()
     }
-  })
+
+    db.exec('PRAGMA foreign_keys = ON')
+
+    // Ensure data directory exists
+    fs.mkdirSync(dataDir, { recursive: true })
+
+    // Reset files
+    fs.writeFileSync(layoutPath, '[]')
+    fs.writeFileSync(settingsPath, '{}')
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('❌ Reset failed:', err)
+    res.status(500).json({ error: 'Failed to reset database' })
+  }
+})
+
 
 // Project routes
 router.get('/projects', (req, res) => {
@@ -102,8 +119,55 @@ router.get('/tasks/project/:projectId', (req, res) => res.json(taskApi.getTasksB
 router.get('/tasks/event/:eventId', (req, res) => res.json(taskApi.getTasksByEvent(req.params.eventId)))
 
 router.post('/tasks', (req, res) => {
-  const id = taskApi.addTask(req.body)
-  res.json({ success: true, id })
+  const {
+    title,
+    description = '',
+    due_date = null,
+    due_time = null,
+    completed = false,
+    event_id = null,
+    project_id = null,
+    list_id = null
+  } = req.body
+
+  if (!title || title.trim() === '') {
+    console.warn('[POST /tasks] Rejected empty title')
+    return res.status(400).json({ error: 'Task title is required' })
+  }
+
+  try {
+    const id = taskApi.addTask({
+      title: title.trim(),
+      description,
+      due_date,
+      due_time,
+      completed,
+      event_id,
+      project_id,
+      list_id
+    })
+    res.json({ success: true, id })
+  } catch (err) {
+    console.error('[POST /tasks] Failed to add task:', err)
+    res.status(500).json({ error: 'Failed to add task' })
+  }
+})
+
+router.get('/list-contents/:listId', (req, res) => {
+  const contents = db.prepare(`
+    SELECT * FROM list_contents WHERE list_id = ?
+  `).all(req.params.listId)
+  res.json(contents)
+})
+
+// Standalone route for all list items (optional global view)
+router.get('/list-items', (req, res) => {
+  try {
+    res.json(listItems.getAllListItems())
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to load list items' })
+  }
 })
 
 router.patch('/tasks/:id', (req, res) => {
@@ -114,6 +178,82 @@ router.patch('/tasks/:id', (req, res) => {
 router.delete('/tasks/:id', (req, res) => {
   taskApi.softDeleteTask(req.params.id)
   res.json({ success: true })
+})
+
+// Phase-linked items
+router.get('/phases/:id/links', (req, res) => {
+  try {
+    const items = phaseApi.getItemsForPhase(req.params.id)
+    res.json(items)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to load phase-linked items' })
+  }
+})
+
+// Phases
+router.get('/phases/:projectId', (req, res) => {
+  try {
+    const phases = phaseApi.getPhasesForProject(req.params.projectId)
+    res.json(phases)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to fetch phases' })
+  }
+})
+
+router.post('/phases', (req, res) => {
+  try {
+    const { project_id, title, order_index = 0 } = req.body
+    const newPhase = phaseApi.createPhase(project_id, title, order_index)
+    res.json(newPhase)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to create phase' })
+  }
+})
+
+router.delete('/phases/:id', (req, res) => {
+  try {
+    phaseApi.deletePhase(req.params.id)
+    res.json({ success: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to delete phase' })
+  }
+})
+
+router.post('/phases/reorder', (req, res) => {
+  try {
+    const updates = req.body.map(({ id, order_index }) => ({ id, order_index }))
+    phaseApi.updatePhasePositions(updates)
+    res.json({ success: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to reorder phases' })
+  }
+})
+
+router.post('/phase-links', (req, res) => {
+  try {
+    const { phase_id, target_type, target_id } = req.body
+    phaseApi.linkItemToPhase(phase_id, target_type, target_id)
+    res.json({ success: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to link item to phase' })
+  }
+})
+
+router.delete('/phase-links', (req, res) => {
+  try {
+    const { phase_id, target_type, target_id } = req.body
+    phaseApi.unlinkItemFromPhase(phase_id, target_type, target_id)
+    res.json({ success: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to unlink item from phase' })
+  }
 })
 
 // Lists and list items

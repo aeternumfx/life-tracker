@@ -23,7 +23,6 @@ export function createTables() {
       `
       CREATE TABLE IF NOT EXISTS events (
         id TEXT PRIMARY KEY,
-        project_id TEXT,
         title TEXT NOT NULL,
         description TEXT,
         date TEXT NOT NULL,
@@ -35,8 +34,7 @@ export function createTables() {
         recurrence_rule TEXT,
         deleted_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT,
-        FOREIGN KEY (project_id) REFERENCES projects(id)
+        updated_at TEXT
       );`,
 
       // ================================
@@ -45,8 +43,8 @@ export function createTables() {
       `
       CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
-        project_id TEXT,
         event_id TEXT,
+        phase_id TEXT,
         title TEXT NOT NULL,
         description TEXT,
         due_date TEXT,
@@ -57,7 +55,7 @@ export function createTables() {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT,
         FOREIGN KEY (event_id) REFERENCES events(id),
-        FOREIGN KEY (project_id) REFERENCES projects(id)
+        FOREIGN KEY (phase_id) REFERENCES phases(id)
       );`,
 
       // ================================
@@ -67,9 +65,11 @@ export function createTables() {
       CREATE TABLE IF NOT EXISTS lists (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        project_id TEXT,
         type TEXT DEFAULT 'general',
+        completed INTEGER DEFAULT 0,
+        completed_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT,
         deleted_at TEXT
       );`,
 
@@ -78,19 +78,48 @@ export function createTables() {
       // ================================
       `
       CREATE TABLE IF NOT EXISTS list_items (
-        id TEXT PRIMARY KEY,
-        list_id TEXT NOT NULL,
-        text TEXT NOT NULL,
-        completed INTEGER DEFAULT 0,
-        priority INTEGER DEFAULT 0,
-        sort_order INTEGER DEFAULT 0,
-        tags TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT,
-        deleted_at TEXT,
-        FOREIGN KEY (list_id) REFERENCES lists(id)
-);`,
+      id TEXT PRIMARY KEY,
+      text TEXT NOT NULL,
+      completed INTEGER DEFAULT 0,
+      priority INTEGER DEFAULT 0,
+      sort_order INTEGER DEFAULT 0,
+      tags TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT,
+      deleted_at TEXT
+);
+`,
 
+
+        // ================================
+        // Table: phase_links
+        // ================================
+
+        `CREATE TABLE phase_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        phase_id INTEGER NOT NULL,
+        target_type TEXT NOT NULL CHECK(target_type IN ('task', 'event', 'list', 'goal', 'list_item')),
+        target_id INTEGER NOT NULL,
+        FOREIGN KEY (phase_id) REFERENCES phases(id) ON DELETE CASCADE
+      );
+`,
+
+
+        // ================================
+        // Table: list_contents
+        // ================================
+`
+        CREATE TABLE IF NOT EXISTS list_contents (
+          id TEXT PRIMARY KEY,
+          list_id TEXT NOT NULL,
+          entity_type TEXT NOT NULL CHECK (entity_type IN ('task', 'item')),
+          entity_id TEXT NOT NULL,
+          sort_order INTEGER DEFAULT 0,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          deleted_at TEXT,
+          FOREIGN KEY (list_id) REFERENCES lists(id)
+        );
+        `,
 
       // ================================
       // Table: system_tags
@@ -211,7 +240,27 @@ export function createTables() {
         entity_id TEXT NOT NULL,
         meta TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );`
+      );`,
+
+
+      // ================================
+      // Table: phases
+      // ================================
+      `
+      CREATE TABLE IF NOT EXISTS phases (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  order_index INTEGER,
+  start_date TEXT,
+  end_date TEXT,
+  deleted_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);`
+
     ]
 
     for (const stmt of statements) {

@@ -1,5 +1,7 @@
 {
-  "title": "lista",
-  "selectedLists": [],
+  "title": "list",
+  "selectedLists": [
+    "7a08a068-9274-4615-b437-402c1cd53910"
+  ],
   "tags": []
 }

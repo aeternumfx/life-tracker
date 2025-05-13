@@ -31,10 +31,35 @@ export const useListStore = defineStore('lists', {
     },
 
     async loadItems(listId) {
-      const res = await fetch(getListApiBasePath(listId))
-      const items = await res.json()
-      this.itemsByListId[listId] = items
-    },
+  const res = await fetch(`/api/lists/${listId}/items`)
+  const rawItems = await res.json()
+
+  const taskRes = await fetch(`/api/tasks`)
+  const allTasks = await taskRes.json()
+
+  // Fetch list_contents to find task IDs linked to this list
+  const contentsRes = await fetch(`/api/list-contents/${listId}`)
+  const listContents = await contentsRes.json()
+
+  const taskIds = listContents
+    .filter(entry => entry.entity_type === 'task')
+    .map(entry => entry.entity_id)
+
+  const tasksForList = allTasks
+    .filter(t => taskIds.includes(t.id))
+    .map(task => ({
+      ...task,
+      text: task.title,
+      type: 'task'
+    }))
+
+  const listItems = rawItems.map(i => ({
+    ...i,
+    type: 'list_item'
+  }))
+
+  this.itemsByListId[listId] = [...tasksForList, ...listItems]
+},
 
     async addList({ name, project_id = null, type = 'general' }) {
       const res = await fetch('/api/lists', {
@@ -73,15 +98,36 @@ export const useListStore = defineStore('lists', {
       }
     },
 
-    async addItem({ list_id, text, priority = 0, tags = '' }) {
-      const res = await fetch(getListApiBasePath(list_id), {
+    async addItem(payload) {
+      const listId = payload.list_id || payload.listId
+      if (!listId) {
+        console.warn('[addItem] Missing list ID in payload:', payload)
+        return
+      }
+
+      console.log('[addItem] Submitting to API for list:', listId)
+
+      const res = await fetch(getListApiBasePath(listId), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ list_id, text, priority, tags })
+        body: JSON.stringify({
+          list_id: listId,
+          text: payload.text,
+          priority: payload.priority ?? 0,
+          tags: payload.tags ?? ''
+        })
       })
+
       const { id } = await res.json()
-      this.itemsByListId[list_id] ??= []
-      this.itemsByListId[list_id].push({ id, text, priority, tags, completed: 0 })
+      this.itemsByListId[listId] ??= []
+      this.itemsByListId[listId].push({
+        id,
+        text: payload.text,
+        priority: payload.priority,
+        tags: payload.tags,
+        completed: 0,
+        type: 'list_item'
+      })
     },
 
     async updateItemStatus(id, completed) {

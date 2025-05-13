@@ -34,7 +34,12 @@
   
       <!-- Dialog -->
       <CalendarAddItemDialog ref="dialog" />
-      <EditEventDialog ref="editDialog" @save="updateEvent" @close="editing = null" />
+      <EditEventDialog
+  ref="editDialog"
+  @save="updateEvent"
+  @delete="deleteEvent"
+  @close="editing = null"
+/>
     </div>
   </template>  
   
@@ -84,6 +89,13 @@ async function updateEvent(updated) {
       settingsStore.setSetting(moduleId, 'lastView', newVal)
     }
   })
+
+  async function deleteEvent(deleted) {
+  if (!deleted?.id) return
+  await eventStore.softDeleteEvent(deleted.id)
+  await eventStore.loadEvents()
+  editing.value = null
+}
   
   const currentViewComponent = computed(() => {
     switch (currentView.value) {

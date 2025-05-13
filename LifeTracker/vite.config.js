@@ -42,8 +42,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './frontend/app'),
       '@backend': path.resolve(__dirname, './backend'),
-      '@modules': path.resolve(__dirname, '.custom/user-modules'), // change to usermodules later
-      '@themes': path.resolve(__dirname, './custom/themes'),       // if you move it soon
+      '@modules': path.resolve(__dirname, './custom/user-modules'),
+      '@themes': path.resolve(__dirname, './custom/themes'),
     }
   },
   server: {
@@ -54,5 +54,9 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    outDir: 'frontend/dist', // 👈 where the production build goes
+    emptyOutDir: true        // clean output dir before build
   }
 })
